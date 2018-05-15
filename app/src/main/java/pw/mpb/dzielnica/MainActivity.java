@@ -21,7 +21,14 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+    @Override
+    protected void onStart() {
+        super.onStart();
+        if (true) {
+            finish();
+            startActivity(new Intent(this, user_login.class));
+        }
 
-
+    }
 
 }
