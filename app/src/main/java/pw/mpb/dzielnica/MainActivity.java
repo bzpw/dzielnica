@@ -8,12 +8,14 @@ import android.widget.Button;
 
 public class MainActivity extends AppCompatActivity {
 
+    public Button yourButton;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Button yourButton = (Button)findViewById(R.id.button2);
+        yourButton = (Button)findViewById(R.id.button2);
 
         yourButton.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v){
@@ -22,6 +24,8 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-
+    protected void connect_to_db(){
+        //sprawdzenie połączenia z bazą
+    }
 
 }
