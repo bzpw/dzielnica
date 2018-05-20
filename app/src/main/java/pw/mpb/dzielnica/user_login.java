@@ -27,7 +27,7 @@ public class user_login extends AppCompatActivity {
         setContentView(R.layout.activity_user_login);
 
         loginBtn = (Button) findViewById(R.id.button);
-        registerBtn = (TextView) findViewById(R.id.textView4);
+        registerBtn = (TextView) findViewById(R.id.registerUserText);
 
         registerBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -43,7 +43,7 @@ public class user_login extends AppCompatActivity {
         View layout = inflater.inflate(R.layout.register_popup, null);
         window = new PopupWindow(layout, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT, true);
         window.setBackgroundDrawable(new ColorDrawable(Color.WHITE));
-        window.setOutsideTouchable(true);
+        window.setOutsideTouchable(false);
         window.showAtLocation(layout, Gravity.CENTER, 40, 60);
         closeRegBtn = (Button) layout.findViewById(R.id.button3);
         closeRegBtn.setOnClickListener(new View.OnClickListener() {

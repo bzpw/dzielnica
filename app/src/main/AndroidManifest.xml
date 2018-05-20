@@ -21,7 +21,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".user_login"></activity>
+        <activity android:name=".user_login" />
+        <activity android:name=".map_screen" />
     </application>
 
 </manifest>
