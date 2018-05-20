@@ -1,7 +1,6 @@
 package pw.mpb.dzielnica;
 
 import android.content.Context;
-import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.support.v7.app.AppCompatActivity;
@@ -72,11 +71,11 @@ public class user_login extends AppCompatActivity implements View.OnClickListene
 
     @Override
     public void onClick(View v) {
-        Log.d("LOGOWANIE", "Klkniety przycisk");
+        //Log.d("LOGOWANIE", "Klkniety przycisk");
         switch (v.getId()) {
-            case R.id.btnLogin:
+            case R.id.button:
                 Log.d("LOGOWANIE", "Klkniety przycisk");
-                Log.d("LOGOWANIE", editTextEmail.getText().toString());
+                //Log.d("LOGOWANIE", editTextEmail.getText().toString());
 
                 new CallAPI().execute("http://192.168.1.104:8000/dzielnice");
 
