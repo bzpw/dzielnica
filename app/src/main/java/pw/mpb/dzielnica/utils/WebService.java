@@ -24,7 +24,7 @@ import retrofit2.http.Part;
  */
 
 public interface WebService {
-    @GET("/zgloszenia/all/?format=json") // deklarujemy endpoint oraz metodę
+    @GET("/api/app/dzielnice/list/") // deklarujemy endpoint oraz metodę
     //void getData(Callback<Zgloszenie> pResponse);
     Call<List<Dzielnica>> getData();
 

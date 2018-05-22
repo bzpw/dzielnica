@@ -82,18 +82,15 @@ public class user_login extends AppCompatActivity implements View.OnClickListene
                         @Override
                         public void onResponse(Call<Token> call, Response<Token> response) {
                             if(response.isSuccessful()) {
-                                String token = response.body().getToken();
-                                showResponse(token);
-
-                                SessionManager.saveToken(sp, token);
-
-                                Toast.makeText(user_login.this, SessionManager.getToken(sp), Toast.LENGTH_SHORT).show();
-
+                                if(response.body() != null) {
+                                    String token = response.body().getToken();
+                                    showResponse(token);
+                                    SessionManager.saveToken(sp, token); // Zapisanie tokena do SharedPref
+                                    Toast.makeText(user_login.this, SessionManager.getToken(sp), Toast.LENGTH_SHORT).show();
+                                    showMainActivity(); // Przeniesienie do MainActivity
+                                }
                             } else{
-
                                 showResponse("NIESUKCESFUL");
-
-
                             }
                         }
 
@@ -103,7 +100,7 @@ public class user_login extends AppCompatActivity implements View.OnClickListene
                             showFailure(t);
                         }
 
-                    } );
+                    });
                 }
             }
         });
@@ -133,18 +130,16 @@ public class user_login extends AppCompatActivity implements View.OnClickListene
         window.setBackgroundDrawable(new ColorDrawable(Color.WHITE));
         window.setOutsideTouchable(true);
         window.showAtLocation(layout, Gravity.CENTER, 40, 60);
+
+        // Nacisniety przycisk "ZALOZ KONTO"
         closeRegBtn = (Button) layout.findViewById(R.id.button3);
         closeRegBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
+                //TODO: pozmieniac tak zeby pasowalo
                 String username = usernameTextView.getText().toString().trim();
                 String password = passwordTextView.getText().toString().trim();
-//                String username = "koleszkoleszko";
-//                String password = "haselkomaselko";
-//                String email = "da";
-//                String first_name = "";
-//                String last_name = "";
                 String email = emailTextView.getText().toString().trim();
                 String first_name = fnTextView.getText().toString().trim();
                 String last_name = lnTextView.getText().toString().trim();
@@ -157,6 +152,7 @@ public class user_login extends AppCompatActivity implements View.OnClickListene
                             if(response.isSuccessful()) {
                                 showResponse(response.body().toString());
                                 Log.d(TAG, "post submitted to API." + response.body().toString());
+                                Toast.makeText(user_login.this, "Zarejestrowano pomyslnie!", Toast.LENGTH_LONG).show();
                             } else {
                                 showResponse(response.toString());
 
@@ -169,9 +165,6 @@ public class user_login extends AppCompatActivity implements View.OnClickListene
                         }
                     });
                 }
-
-
-                //window.dismiss();
             }
         });
     }
@@ -180,9 +173,6 @@ public class user_login extends AppCompatActivity implements View.OnClickListene
     public void onResume() {
         super.onResume();
 
-
-        //
-
         // Jeśli użytkownik zalogowany, przekieruj go do MainActivity
         mWebService.checkIsLogged(SessionManager.getToken(sp)).enqueue(new Callback<JSONObject>() {
             @Override
@@ -190,7 +180,6 @@ public class user_login extends AppCompatActivity implements View.OnClickListene
                 showResponse(response.toString());
                 if(response.code() == 200)
                     showMainActivity();
-
             }
 
             @Override
