@@ -59,29 +59,29 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v){
 
 
-                try {
-                    Call<List<Dzielnica>> call = myWebService.getData();
-                    call.enqueue(new Callback<List<Dzielnica>>() {
-                        @Override
-                        public void onResponse(Call<List<Dzielnica>> call, Response<List<Dzielnica>> response) {
-                            List<Dzielnica> data = response.body();
-                            for (Dzielnica dz: data) {
-                                Log.d(CLASS_TAG, dz.getName());
-                            }
-                        }
+//                try {
+//                    Call<List<Dzielnica>> call = myWebService.getData();
+//                    call.enqueue(new Callback<List<Dzielnica>>() {
+//                        @Override
+//                        public void onResponse(Call<List<Dzielnica>> call, Response<List<Dzielnica>> response) {
+//                            List<Dzielnica> data = response.body();
+//                            for (Dzielnica dz: data) {
+//                                Log.d(CLASS_TAG, dz.getName());
+//                            }
+//                        }
+//
+//                        @Override
+//                        public void onFailure(Call<List<Dzielnica>> call, Throwable t) {
+//                            Log.d(CLASS_TAG, "Failure, throwable is " + t);
+//                        }
+//
+//                    });
+//
+//                } catch (Exception e) {
+//                    Log.d(CLASS_TAG, e.toString());
+//                }
 
-                        @Override
-                        public void onFailure(Call<List<Dzielnica>> call, Throwable t) {
-                            Log.d(CLASS_TAG, "Failure, throwable is " + t);
-                        }
-
-                    });
-
-                } catch (Exception e) {
-                    Log.d(CLASS_TAG, e.toString());
-                }
-
-                //startActivity(new Intent(MainActivity.this, user_login.class));
+                startActivity(new Intent(MainActivity.this, user_login.class));
             }
         });
     }

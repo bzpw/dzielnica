@@ -5,11 +5,13 @@ import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.PopupWindow;
 import android.widget.TextView;
 
@@ -26,14 +28,27 @@ import java.io.BufferedReader;
 import java.net.HttpURLConnection;
 import android.util.Log;
 
+import pw.mpb.dzielnica.pojo.User;
+import pw.mpb.dzielnica.utils.ApiUtils;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+
 public class user_login extends AppCompatActivity implements View.OnClickListener {
 
     String result = "";
+    private String TAG = "ODPOWIEDZSERWERA";
 
     public Button loginBtn;
     public Button closeRegBtn;
     public TextView registerBtn;
     private PopupWindow window;
+
+    // Adapter REST z Retrofita
+    Retrofit retrofit;
+    // Interfejs API
+    private WebService mWebService;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,10 +58,12 @@ public class user_login extends AppCompatActivity implements View.OnClickListene
         loginBtn = (Button) findViewById(R.id.button);
         registerBtn = (TextView) findViewById(R.id.textView4);
 
+
+
         registerBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                ShowPopupWindow();
+               ShowPopupWindow();
             }
         });
 
@@ -56,6 +73,15 @@ public class user_login extends AppCompatActivity implements View.OnClickListene
         LayoutInflater inflater = (LayoutInflater) user_login.this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View layout = inflater.inflate(R.layout.register_popup, null);
         window = new PopupWindow(layout, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT, true);
+
+        mWebService = ApiUtils.getAPIService();
+
+        final EditText usernameTextView = (EditText)layout.findViewById(R.id.editText3);
+        final EditText passwordTextView = ((EditText)layout.findViewById(R.id.editText4));
+        final EditText emailTextView =(EditText)layout.findViewById(R.id.editText3);
+        final EditText fnTextView = (EditText)layout.findViewById(R.id.editText3);
+        final EditText lnTextView = (EditText)layout.findViewById(R.id.editText3);
+
         window.setBackgroundDrawable(new ColorDrawable(Color.WHITE));
         window.setOutsideTouchable(true);
         window.showAtLocation(layout, Gravity.CENTER, 40, 60);
@@ -63,7 +89,41 @@ public class user_login extends AppCompatActivity implements View.OnClickListene
         closeRegBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                window.dismiss();
+
+                String username = usernameTextView.getText().toString().trim();
+                String password = passwordTextView.getText().toString().trim();
+//                String username = "koleszkoleszko";
+//                String password = "haselkomaselko";
+//                String email = "da";
+//                String first_name = "";
+//                String last_name = "";
+                String email = emailTextView.getText().toString().trim();
+                String first_name = fnTextView.getText().toString().trim();
+                String last_name = lnTextView.getText().toString().trim();
+
+                if(!TextUtils.isEmpty(username) && !TextUtils.isEmpty(password)) {
+                    mWebService.registerUser(username, password, email, first_name, last_name).enqueue(new Callback<User>() {
+
+                        @Override
+                        public void onResponse(Call<User> call, Response<User> response) {
+                            if(response.isSuccessful()) {
+                                showResponse(response.body().toString());
+                                Log.d(TAG, "post submitted to API." + response.body().toString());
+                            } else {
+                                showResponse(response.toString());
+
+                            }
+                        }
+
+                        @Override
+                        public void onFailure(Call<User> call, Throwable t) {
+                            Log.d(TAG, "Failure, throwable is: " + t);
+                        }
+                    });
+                }
+
+
+                //window.dismiss();
             }
         });
     }
@@ -159,4 +219,9 @@ public class user_login extends AppCompatActivity implements View.OnClickListene
         return response.toString();
     }
 
+
+
+    public void showResponse(String response) {
+        Log.d(TAG, response);
+    }
 }
