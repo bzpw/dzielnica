@@ -19,7 +19,7 @@ public class MainActivity extends AppCompatActivity {
 
         yourButton.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v){
-                startActivity(new Intent(MainActivity.this, user_login.class));
+                startActivity(new Intent(MainActivity.this, map_screen.class));
             }
         });
     }
