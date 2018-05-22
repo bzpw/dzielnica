@@ -1,7 +1,5 @@
 package pw.mpb.dzielnica.utils;
 
-import pw.mpb.dzielnica.WebService;
-
 /**
  *
  */

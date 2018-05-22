@@ -1,6 +1,8 @@
 package pw.mpb.dzielnica;
 
 import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.support.v7.app.AppCompatActivity;
@@ -16,20 +18,20 @@ import android.widget.PopupWindow;
 import android.widget.TextView;
 
 
-// Retrofit???
-import android.os.AsyncTask;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.MalformedURLException;
-import java.net.URL;
 
-import java.io.BufferedReader;
-import java.net.HttpURLConnection;
 import android.util.Log;
+import android.widget.Toast;
+
+// Retrofit
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import pw.mpb.dzielnica.pojo.User;
+import pw.mpb.dzielnica.pojo.Token;
 import pw.mpb.dzielnica.utils.ApiUtils;
+import pw.mpb.dzielnica.utils.SessionManager;
+import pw.mpb.dzielnica.utils.WebService;
+
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -45,20 +47,66 @@ public class user_login extends AppCompatActivity implements View.OnClickListene
     public TextView registerBtn;
     private PopupWindow window;
 
+    EditText usernameET;
+    EditText passwordET;
+
     // Adapter REST z Retrofita
     Retrofit retrofit;
     // Interfejs API
     private WebService mWebService;
+
+    SharedPreferences sp;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_user_login);
 
+        sp = getSharedPreferences("authentication", MODE_PRIVATE);
+
         loginBtn = (Button) findViewById(R.id.button);
         registerBtn = (TextView) findViewById(R.id.textView4);
 
+        usernameET = findViewById(R.id.editText);
+        passwordET = findViewById(R.id.editText2);
 
+        mWebService = ApiUtils.getAPIService();
+
+        loginBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String username = usernameET.getText().toString().trim();
+                String password = passwordET.getText().toString().trim();
+                if(!TextUtils.isEmpty(username) && !TextUtils.isEmpty(password)) {
+                    mWebService.loginUser(username, password).enqueue(new Callback<Token>() {
+                        @Override
+                        public void onResponse(Call<Token> call, Response<Token> response) {
+                            if(response.isSuccessful()) {
+                                String token = response.body().getToken();
+                                showResponse(token);
+
+                                SessionManager.saveToken(sp, token);
+
+                                Toast.makeText(user_login.this, SessionManager.getToken(sp), Toast.LENGTH_SHORT).show();
+
+                            } else{
+
+                                showResponse("NIESUKCESFUL");
+
+
+                            }
+                        }
+
+                        @Override
+                        public void onFailure(Call<Token> call, Throwable t) {
+                            Log.d(TAG, call.request().toString());
+                            showFailure(t);
+                        }
+
+                    } );
+                }
+            }
+        });
 
         registerBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -74,7 +122,7 @@ public class user_login extends AppCompatActivity implements View.OnClickListene
         View layout = inflater.inflate(R.layout.register_popup, null);
         window = new PopupWindow(layout, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT, true);
 
-        mWebService = ApiUtils.getAPIService();
+        //mWebService = ApiUtils.getAPIService();
 
         final EditText usernameTextView = (EditText)layout.findViewById(R.id.editText3);
         final EditText passwordTextView = ((EditText)layout.findViewById(R.id.editText4));
@@ -117,7 +165,7 @@ public class user_login extends AppCompatActivity implements View.OnClickListene
 
                         @Override
                         public void onFailure(Call<User> call, Throwable t) {
-                            Log.d(TAG, "Failure, throwable is: " + t);
+                            showFailure(t);
                         }
                     });
                 }
@@ -128,100 +176,44 @@ public class user_login extends AppCompatActivity implements View.OnClickListene
         });
     }
 
-
     @Override
-    public void onClick(View v) {
-        //Log.d("LOGOWANIE", "Klkniety przycisk");
-        switch (v.getId()) {
-            case R.id.button:
-                Log.d("LOGOWANIE", "Klkniety przycisk");
-                //Log.d("LOGOWANIE", editTextEmail.getText().toString());
-
-                new CallAPI().execute("http://192.168.1.104:8000/dzielnice");
-
-                break;
-
-        }
-    }
+    public void onResume() {
+        super.onResume();
 
 
-    // Asynchroniczne wysyłanie zapytania do DJANGO
+        //
 
-    public class CallAPI extends AsyncTask<String , Void ,String> {
-        String server_response;
+        // Jeśli użytkownik zalogowany, przekieruj go do MainActivity
+        mWebService.checkIsLogged(SessionManager.getToken(sp)).enqueue(new Callback<JSONObject>() {
+            @Override
+            public void onResponse(Call<JSONObject> call, Response<JSONObject> response) {
+                showResponse(response.toString());
+                if(response.code() == 200)
+                    showMainActivity();
 
-        @Override
-        protected String doInBackground(String... strings) {
-
-            URL url;
-            HttpURLConnection urlConnection = null;
-            String getParams = strings[0];
-            //String dataPOST = strings[1];
-
-            try {
-                url = new URL(getParams);
-
-                urlConnection = (HttpURLConnection) url.openConnection();
-                urlConnection.setReadTimeout(15000);
-                urlConnection.setConnectTimeout(15000);
-                urlConnection.setRequestMethod("GET");
-                //urlConnection.setDoInput(true);
-                //urlConnection.setDoOutput(true);
-
-                int responseCode = urlConnection.getResponseCode();
-
-                if(responseCode == HttpURLConnection.HTTP_OK){
-                    server_response = readStream(urlConnection.getInputStream());
-                    Log.v("CatalogClient", server_response);
-                }
-
-            } catch (MalformedURLException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
             }
 
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(String s) {
-            super.onPostExecute(s);
-
-            Log.e("Response", "" + server_response);
-
-
-        }
-    }
-
-    // Converting InputStream to String
-
-    private String readStream(InputStream in) {
-        BufferedReader reader = null;
-        StringBuffer response = new StringBuffer();
-        try {
-            reader = new BufferedReader(new InputStreamReader(in));
-            String line = "";
-            while ((line = reader.readLine()) != null) {
-                response.append(line);
+            @Override
+            public void onFailure(Call<JSONObject> call, Throwable t) {
+                showFailure(t);
             }
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            if (reader != null) {
-                try {
-                    reader.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-        return response.toString();
+        });
     }
-
-
 
     public void showResponse(String response) {
         Log.d(TAG, response);
+    }
+
+    public void showFailure(Throwable t) {
+        Log.d(TAG, "Failure, throwable is: " + t);
+    }
+
+    public void showMainActivity() {
+        startActivity(new Intent(user_login.this, MainActivity.class));
+    }
+
+    @Override
+    public void onClick(View v) {
+
     }
 }

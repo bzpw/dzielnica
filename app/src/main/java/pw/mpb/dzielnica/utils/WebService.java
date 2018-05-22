@@ -1,9 +1,14 @@
-package pw.mpb.dzielnica;
+package pw.mpb.dzielnica.utils;
+
+import android.util.JsonToken;
+
+import org.json.JSONObject;
 
 import java.util.List;
 
 import okhttp3.MultipartBody;
 import pw.mpb.dzielnica.pojo.Dzielnica;
+import pw.mpb.dzielnica.pojo.Token;
 import pw.mpb.dzielnica.pojo.User;
 import retrofit2.Call;
 import retrofit2.http.Field;
@@ -30,4 +35,14 @@ public interface WebService {
                             @Field("email") String email,
                             @Field("first_name") String first_name,
                             @Field("first_name") String last_name);
+
+    @POST("/api/app/user/login/")
+    @FormUrlEncoded
+    Call<Token> loginUser(@Field("username") String username,
+                          @Field("password") String password);
+
+    @POST("api/app/user/verify")
+    @FormUrlEncoded
+    Call<JSONObject> checkIsLogged(@Field("token") String token);
+
 }
