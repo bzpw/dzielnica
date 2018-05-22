@@ -56,7 +56,7 @@ public class map_screen extends AppCompatActivity {
 
     public void GeoJSONParse(String geoJSON){
         KmlDocument kmlDocument = new KmlDocument();
-       // kmlDocument.parseGeoJSON(geoJSON);
+        kmlDocument.parseGeoJSON(geoJSON);
         Drawable defaultMarker = getResources().getDrawable(R.drawable.marker_default);
         Bitmap defaultBitmap = ((BitmapDrawable) defaultMarker).getBitmap();
         Style defaultStyle = new Style(defaultBitmap, 0x901010AA, 5f, 0x20AA1010);
