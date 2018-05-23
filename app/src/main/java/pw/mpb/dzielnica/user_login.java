@@ -84,20 +84,20 @@ public class user_login extends AppCompatActivity implements View.OnClickListene
                             if(response.isSuccessful()) {
                                 if(response.body() != null) {
                                     String token = response.body().getToken();
-                                    showResponse(token);
+                                    ApiUtils.logResponse(token);
                                     SessionManager.saveToken(sp, token); // Zapisanie tokena do SharedPref
                                     Toast.makeText(user_login.this, SessionManager.getToken(sp), Toast.LENGTH_SHORT).show();
                                     showMainActivity(); // Przeniesienie do MainActivity
                                 }
                             } else{
-                                showResponse("NIESUKCESFUL");
+                                ApiUtils.logResponse("NIESUKCESFUL");
                             }
                         }
 
                         @Override
                         public void onFailure(Call<Token> call, Throwable t) {
                             Log.d(TAG, call.request().toString());
-                            showFailure(t);
+                            ApiUtils.logFailure(t);
                         }
 
                     });
@@ -150,18 +150,18 @@ public class user_login extends AppCompatActivity implements View.OnClickListene
                         @Override
                         public void onResponse(Call<User> call, Response<User> response) {
                             if(response.isSuccessful()) {
-                                showResponse(response.body().toString());
+                                ApiUtils.logResponse(response.body().toString());
                                 Log.d(TAG, "post submitted to API." + response.body().toString());
                                 Toast.makeText(user_login.this, "Zarejestrowano pomyslnie!", Toast.LENGTH_LONG).show();
                             } else {
-                                showResponse(response.toString());
+                                ApiUtils.logResponse(response.toString());
 
                             }
                         }
 
                         @Override
                         public void onFailure(Call<User> call, Throwable t) {
-                            showFailure(t);
+                            ApiUtils.logFailure(t);
                         }
                     });
                 }
@@ -177,24 +177,16 @@ public class user_login extends AppCompatActivity implements View.OnClickListene
         mWebService.checkIsLogged(SessionManager.getToken(sp)).enqueue(new Callback<JSONObject>() {
             @Override
             public void onResponse(Call<JSONObject> call, Response<JSONObject> response) {
-                showResponse(response.toString());
+                ApiUtils.logResponse(response.toString());
                 if(response.code() == 200)
                     showMainActivity();
             }
 
             @Override
             public void onFailure(Call<JSONObject> call, Throwable t) {
-                showFailure(t);
+                ApiUtils.logFailure(t);
             }
         });
-    }
-
-    public void showResponse(String response) {
-        Log.d(TAG, response);
-    }
-
-    public void showFailure(Throwable t) {
-        Log.d(TAG, "Failure, throwable is: " + t);
     }
 
     public void showMainActivity() {

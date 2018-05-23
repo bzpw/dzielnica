@@ -73,7 +73,12 @@ public class map_screen extends AppCompatActivity {
     public void onResume(){
         super.onResume();
         map.onResume();
-        Toast.makeText(this, "JWT "+ SessionManager.getToken(sp), Toast.LENGTH_SHORT).show();
+
+        refreshZgloszenia();
+        
+    }
+
+    private void refreshZgloszenia() {
         mWebService.listZgloszenia("JWT "+ SessionManager.getToken(sp)).enqueue(new Callback<ResponseBody>() {
             @Override
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
@@ -100,7 +105,6 @@ public class map_screen extends AppCompatActivity {
 
             }
         });
-        
     }
 
     public void onPause(){
