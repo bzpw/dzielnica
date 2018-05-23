@@ -30,10 +30,13 @@ import org.osmdroid.config.Configuration;
 public class MainActivity extends AppCompatActivity {
 
     public Button yourButton;
+    public Button btnMap;
+    public Button btnLogout;
+    public Button btnConnect;
 
-    // adapter REST z Retrofita
+    // Adapter REST z Retrofita
     Retrofit retrofit;
-    // nasz interfejs
+    // Nasz interfejs API REST
     WebService myWebService;
 
 
@@ -41,6 +44,7 @@ public class MainActivity extends AppCompatActivity {
 
     private String CLASS_TAG = "ODPOWIEDZSERWERA";
 
+    ProgressDialog progressDoalog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,20 +56,12 @@ public class MainActivity extends AppCompatActivity {
 
         //Przygotowanie SharedPreferences do przechowywania tokena
         sp = getSharedPreferences("authentication", MODE_PRIVATE);
-        Toast.makeText(this, SessionManager.getToken(sp), Toast.LENGTH_SHORT).show();
-        //SessionManager.removeToken(sp);
-
-        // Zapisywanie danych HTTP do Logcata
-        HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
-        interceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
-        OkHttpClient client = new OkHttpClient.Builder().addInterceptor(interceptor).build();
 
         // Ustawiamy wybrane parametry adaptera
         retrofit = new Retrofit.Builder()
                 // adres API
                 .baseUrl("http://192.168.1.104:8000")
                 // niech Retrofit loguje wszystko co robi
-                .client(client)
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
 
@@ -73,64 +69,94 @@ public class MainActivity extends AppCompatActivity {
         myWebService = retrofit.create(WebService.class);
 
         // Set up progress before call
-        final ProgressDialog progressDoalog;
         progressDoalog = new ProgressDialog(MainActivity.this);
         progressDoalog.setMax(100);
-        progressDoalog.setMessage("Sprawdzam polaczenie z baza");
-        progressDoalog.setTitle("Connection to DB");
+        progressDoalog.setMessage("Sprawdzam polaczenie z serwerem");
+        progressDoalog.setTitle("Połączenie z serwerem");
         progressDoalog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
 
+        btnMap = (Button) findViewById(R.id.btnMapa);
+        btnLogout = (Button) findViewById(R.id.btnWyloguj);
+        btnConnect = (Button) findViewById(R.id.btnConnect);
 
 
         yourButton = (Button)findViewById(R.id.button2);
+
+        yourButton.setEnabled(false);
+        btnMap.setEnabled(false);
+        btnLogout.setEnabled(true);
+
         yourButton.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v){
-
-                // Show it
-                progressDoalog.show();
-
-                try {
-                    Call<List<Dzielnica>> call = myWebService.getData();
-                    call.enqueue(new Callback<List<Dzielnica>>() {
-                        @Override
-                        public void onResponse(Call<List<Dzielnica>> call, Response<List<Dzielnica>> response) {
-                            try {
-                                Thread.sleep(1000);
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                            }
-                            List<Dzielnica> data = response.body();
-                            if(data != null) {
-                                for (Dzielnica dz : data) {
-                                    Log.d(CLASS_TAG, dz.getName());
-                                }
-                                progressDoalog.dismiss();
-                                startActivity(new Intent(MainActivity.this, user_login.class));
-                            } else {
-                                Log.d(CLASS_TAG, Integer.toString(response.code()));
-                                progressDoalog.dismiss();
-                            }
-                        }
-
-                        @Override
-                        public void onFailure(Call<List<Dzielnica>> call, Throwable t) {
-                            Log.d(CLASS_TAG, "Failure, throwable is " + t);
-                            progressDoalog.dismiss();
-                        }
-
-                    });
-
-                } catch (Exception e) {
-                    Log.d(CLASS_TAG, e.toString());
-                }
-
-
+                startActivity(new Intent(MainActivity.this, user_login.class));
             }
         });
+
+        btnMap.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(MainActivity.this, map_screen.class));
+            }
+        });
+
+        btnLogout.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v) {
+                SessionManager.removeToken(sp);
+                Toast.makeText(MainActivity.this, "Wylogowano użytkownika!", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        btnConnect.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v) {
+                connect_to_db();
+            }
+        });
+
+        connect_to_db();
     }
 
     protected void connect_to_db(){
-        //sprawdzenie połączenia z bazą
+
+        // Show it
+        progressDoalog.show();
+
+        try {
+            Call<List<Dzielnica>> call = myWebService.getData();
+            call.enqueue(new Callback<List<Dzielnica>>() {
+                @Override
+                public void onResponse(Call<List<Dzielnica>> call, Response<List<Dzielnica>> response) {
+
+                    List<Dzielnica> data = response.body();
+                    if(data != null) {
+                        for (Dzielnica dz : data) {
+                            Log.d(CLASS_TAG, dz.getName());
+                        }
+
+                        progressDoalog.dismiss();
+                        btnMap.setEnabled(true);
+                        yourButton.setEnabled(true);
+
+                    } else {
+                        Log.d(CLASS_TAG, Integer.toString(response.code()));
+                        progressDoalog.dismiss();
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<List<Dzielnica>> call, Throwable t) {
+                    Log.d(CLASS_TAG, "Failure, throwable is " + t);
+                    Toast.makeText(MainActivity.this, "Połączenie nieudane!\n"+t, Toast.LENGTH_LONG).show();
+                    progressDoalog.dismiss();
+                }
+
+            });
+
+        } catch (Exception e) {
+            Log.d(CLASS_TAG, e.toString());
+        }
+
     }
 
 }
