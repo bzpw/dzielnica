@@ -152,7 +152,7 @@ public class user_login extends AppCompatActivity implements View.OnClickListene
                             if(response.isSuccessful()) {
                                 ApiUtils.logResponse(response.body().toString());
                                 Log.d(TAG, "post submitted to API." + response.body().toString());
-                                Toast.makeText(user_login.this, "Zarejestrowano pomyslnie!", Toast.LENGTH_LONG).show();
+
                             } else {
                                 ApiUtils.logResponse(response.toString());
 
