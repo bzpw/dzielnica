@@ -82,8 +82,8 @@ public class MainActivity extends AppCompatActivity {
 
         yourButton = (Button)findViewById(R.id.button2);
 
-        yourButton.setEnabled(false);
-        btnMap.setEnabled(false);
+//        yourButton.setEnabled(false);
+//        btnMap.setEnabled(false);
         btnLogout.setEnabled(true);
 
         yourButton.setOnClickListener(new View.OnClickListener(){
