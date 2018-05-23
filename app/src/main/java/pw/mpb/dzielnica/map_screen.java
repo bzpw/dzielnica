@@ -5,6 +5,8 @@ import org.osmdroid.bonuspack.kml.Style;
 import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.MapView;
 
+import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
@@ -12,6 +14,10 @@ import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
+import android.os.Build;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -49,7 +55,34 @@ import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 
+
+
+
+
+
 public class map_screen extends AppCompatActivity {
+
+    GeoPoint currentLocation;
+    private static final int REQ_CODE_PERMISSION = 1;
+
+    public class MyLocationListener implements LocationListener {
+
+        public void onLocationChanged(Location location) {
+            currentLocation = new GeoPoint(location);
+            Log.d("GEO", Double.toString(currentLocation.getLatitude()));
+            //displayMyCurrentLocationOverlay();
+        }
+
+        public void onProviderDisabled(String provider) {
+        }
+
+        public void onProviderEnabled(String provider) {
+        }
+
+        public void onStatusChanged(String provider, int status, Bundle extras) {
+        }
+    }
+
 
     MapView map = null;
     public FloatingActionButton cameraBtn;
@@ -63,10 +96,33 @@ public class map_screen extends AppCompatActivity {
 
     SharedPreferences sp;
 
+    @SuppressLint("MissingPermission")
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_map_screen);
+
+        // Lokalizacja
+//        Location location = new Location(LocationManager.GPS_PROVIDER);
+//        location.setLatitude(MAP_DEFAULT_LATITUDE);
+//        location.setLongitude(MAP_DEFAULT_LONGITUDE);
+//        GeoPoint ZmiennaLokalizacjiwPunkcie = new GeoPoint(location);
+//        ZmiennaLokalizacjiwPunkcie.getLatitude();
+//        ZmiennaLokalizacjiwPunkcie.getLongitude();
+
+
+        //Lokalizacja 2
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQ_CODE_PERMISSION);
+        }
+
+        MyLocationListener locationListener = new MyLocationListener();
+        LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
+        Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+        if( location != null ) {
+            currentLocation = new GeoPoint(location.getLatitude(), location.getLongitude());
+        }
 
         // Token, REST API
         sp = getSharedPreferences("authentication", MODE_PRIVATE);
@@ -168,7 +224,8 @@ public class map_screen extends AppCompatActivity {
 
                 int cat = Integer.parseInt(editTypeNo.getText().toString());
                 String desc = editDesc.getText().toString();
-                mWebService.addZgloszenie(cat, desc, "POINT(52.0 21.0)", 1).enqueue(new Callback<Zgloszenie>() {
+                //{"type": "Point", "coordinates": [21.010725, 52.220428]}
+                mWebService.addZgloszenie(cat, desc, "{\"type\": \"Point\", \"coordinates\": [21.010725, 52.220428]}", 1).enqueue(new Callback<Zgloszenie>() {
                     @Override
                     public void onResponse(Call<Zgloszenie> call, Response<Zgloszenie> response) {
 
@@ -178,7 +235,6 @@ public class map_screen extends AppCompatActivity {
                         } else {
                             ApiUtils.logResponse(response.toString());
                             Toast.makeText(map_screen.this, "BAD", Toast.LENGTH_SHORT).show();
-
                         }
                         Toast.makeText(map_screen.this, "Dodano zgłoszenie!", Toast.LENGTH_SHORT).show();
 
@@ -202,4 +258,18 @@ public class map_screen extends AppCompatActivity {
 
     }
 
+    private void displayMyCurrentLocationOverlay() {
+//        if( currentLocation != null) {
+//            if( currentLocationOverlay == null ) {
+//                currentLocationOverlay = new ArrayItemizedOverlay(myLocationMarker);
+//                myCurrentLocationOverlayItem = new OverlayItem(currentLocation, "My Location", "My Location!");
+//                currentLocationOverlay.addItem(myCurrentLocationOverlayItem);
+//                map.getOverlays().add(currentLocationOverlay);
+//            } else {
+//                myCurrentLocationOverlayItem.setPoint(currentLocation);
+//                currentLocationOverlay.requestRedraw();
+//            }
+//            map.getController().setCenter(currentLocation);
+//        }
+    }
 }

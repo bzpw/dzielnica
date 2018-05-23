@@ -87,6 +87,7 @@ public class user_login extends AppCompatActivity implements View.OnClickListene
                                     ApiUtils.logResponse(token);
                                     SessionManager.saveToken(sp, token); // Zapisanie tokena do SharedPref
                                     Toast.makeText(user_login.this, SessionManager.getToken(sp), Toast.LENGTH_SHORT).show();
+
                                     showMainActivity(); // Przeniesienie do MainActivity
                                 }
                             } else{
