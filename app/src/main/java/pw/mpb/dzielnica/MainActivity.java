@@ -17,6 +17,8 @@ import java.util.List;
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
 import pw.mpb.dzielnica.pojo.Dzielnica;
+import pw.mpb.dzielnica.utils.ApiUtils;
+import pw.mpb.dzielnica.utils.RetrofitClient;
 import pw.mpb.dzielnica.utils.SessionManager;
 import pw.mpb.dzielnica.utils.WebService;
 import retrofit2.Call;
@@ -57,16 +59,8 @@ public class MainActivity extends AppCompatActivity {
         //Przygotowanie SharedPreferences do przechowywania tokena
         sp = getSharedPreferences("authentication", MODE_PRIVATE);
 
-        // Ustawiamy wybrane parametry adaptera
-        retrofit = new Retrofit.Builder()
-                // adres API
-                .baseUrl("http://192.168.1.104:8000")
-                // niech Retrofit loguje wszystko co robi
-                .addConverterFactory(GsonConverterFactory.create())
-                .build();
-
         // Tworzymy klienta
-        myWebService = retrofit.create(WebService.class);
+        myWebService = ApiUtils.getAPIService();
 
         // Set up progress before call
         progressDoalog = new ProgressDialog(MainActivity.this);
