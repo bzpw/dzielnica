@@ -11,6 +11,7 @@ public class Zgloszenie {
     private int id;
     private String geometry;
     private int user_id;
+    private String desc;
 
 
     public int getType() {
@@ -43,5 +44,13 @@ public class Zgloszenie {
 
     public void setUser_id(int user_id) {
         this.user_id = user_id;
+    }
+
+    public String getDesc() {
+        return desc;
+    }
+
+    public void setDesc(String desc) {
+        this.desc = desc;
     }
 }
