@@ -44,16 +44,17 @@ public interface WebService {
     Call<Token> loginUser(@Field("username") String username,
                           @Field("password") String password);
 
-    @POST("api/app/user/verify")
+    @POST("api/app/user/verify/")
     @FormUrlEncoded
     Call<JSONObject> checkIsLogged(@Field("token") String token);
 
-    @POST("api/app/zgloszenia/add")
+    @POST("api/app/zgloszenia/add/")
     @FormUrlEncoded
-    Call<Zgloszenie> addZgloszenie(@Field("type") int field,
+    Call<Zgloszenie> addZgloszenie(@Header("Authorization") String authHeader,
+                                   @Field("type") int field,
                                    @Field("desc") String desc,
                                    @Field("geometry") String geometry,
-                                   @Field("user_id") int user_id);
+                                   @Field("user") int user);
 
     @GET("zgloszenia/all")
     Call<ResponseBody> listZgloszenia(@Header("Authorization") String authHeader);

@@ -3,6 +3,10 @@ package pw.mpb.dzielnica.pojo;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
+/**
+ * User POJO
+ */
+
 public class User {
 
     @SerializedName("id")

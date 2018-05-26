@@ -9,6 +9,7 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
@@ -18,7 +19,9 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Build;
+import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.Gravity;
@@ -29,7 +32,14 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.PopupWindow;
 import android.util.Log;
+import android.widget.TextView;
 import android.widget.Toast;
+
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationCallback;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationResult;
+import com.google.android.gms.location.LocationServices;
 
 import org.osmdroid.api.IMapController;
 import org.osmdroid.config.Configuration;
@@ -40,6 +50,7 @@ import org.osmdroid.views.overlay.FolderOverlay;
 import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider;
 import org.osmdroid.views.overlay.OverlayItem;
 import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider;
+import org.osmdroid.views.overlay.mylocation.IMyLocationProvider;
 import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay;
 
 import java.io.IOException;
@@ -50,38 +61,20 @@ import pw.mpb.dzielnica.pojo.Zgloszenie;
 import pw.mpb.dzielnica.utils.ApiUtils;
 import pw.mpb.dzielnica.utils.SessionManager;
 import pw.mpb.dzielnica.utils.WebService;
+import pw.mpb.dzielnica.utils.osm.JsonGeoPoint;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 
 
-
-
-
-
 public class map_screen extends AppCompatActivity {
 
-    GeoPoint currentLocation;
+    JsonGeoPoint currentLocation;
     private static final int REQ_CODE_PERMISSION = 1;
 
-    public class MyLocationListener implements LocationListener {
-
-        public void onLocationChanged(Location location) {
-            currentLocation = new GeoPoint(location);
-            Log.d("GEO", Double.toString(currentLocation.getLatitude()));
-            //displayMyCurrentLocationOverlay();
-        }
-
-        public void onProviderDisabled(String provider) {
-        }
-
-        public void onProviderEnabled(String provider) {
-        }
-
-        public void onStatusChanged(String provider, int status, Bundle extras) {
-        }
-    }
+    private FusedLocationProviderClient mFusedLocationClient;
+    private MyLocationNewOverlay currentLocationOverlay;
 
 
     MapView map = null;
@@ -96,32 +89,21 @@ public class map_screen extends AppCompatActivity {
 
     SharedPreferences sp;
 
+
     @SuppressLint("MissingPermission")
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_map_screen);
 
-        // Lokalizacja
-//        Location location = new Location(LocationManager.GPS_PROVIDER);
-//        location.setLatitude(MAP_DEFAULT_LATITUDE);
-//        location.setLongitude(MAP_DEFAULT_LONGITUDE);
-//        GeoPoint ZmiennaLokalizacjiwPunkcie = new GeoPoint(location);
-//        ZmiennaLokalizacjiwPunkcie.getLatitude();
-//        ZmiennaLokalizacjiwPunkcie.getLongitude();
+        // Sprawdzenie zezwoleń - lokalizacja
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
 
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQ_CODE_PERMISSION);
+            }
 
-        //Lokalizacja 2
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQ_CODE_PERMISSION);
-        }
-
-        MyLocationListener locationListener = new MyLocationListener();
-        LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
-        Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-        if( location != null ) {
-            currentLocation = new GeoPoint(location.getLatitude(), location.getLongitude());
+            return;
         }
 
         // Token, REST API
@@ -133,7 +115,7 @@ public class map_screen extends AppCompatActivity {
 
         GeoPoint center = new GeoPoint(52.220428, 21.010725);
 
-        map = (MapView)findViewById(R.id.map);
+        map = (MapView) findViewById(R.id.map);
         map.setTileSource(TileSourceFactory.MAPNIK);
         map.setBuiltInZoomControls(true);
         map.setMultiTouchControls(true);
@@ -155,16 +137,17 @@ public class map_screen extends AppCompatActivity {
 
     }
 
-    public void onResume(){
+    public void onResume() {
         super.onResume();
         map.onResume();
 
+        createLocationRequest();
         refreshZgloszenia();
 
     }
 
     private void refreshZgloszenia() {
-        mWebService.listZgloszenia("JWT "+ SessionManager.getToken(sp)).enqueue(new Callback<ResponseBody>() {
+        mWebService.listZgloszenia("JWT " + SessionManager.getToken(sp)).enqueue(new Callback<ResponseBody>() {
             @Override
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
 
@@ -192,12 +175,12 @@ public class map_screen extends AppCompatActivity {
         });
     }
 
-    public void onPause(){
+    public void onPause() {
         super.onPause();
         map.onPause();
     }
 
-    public void GeoJSONParse(String geoJSON){
+    public void GeoJSONParse(String geoJSON) {
         KmlDocument kmlDocument = new KmlDocument();
         kmlDocument.parseGeoJSON(geoJSON);
         Drawable defaultMarker = getResources().getDrawable(R.drawable.marker_default);
@@ -208,6 +191,101 @@ public class map_screen extends AppCompatActivity {
         map.invalidate();
     }
 
+
+    // Co się dzieje po aktualizacji lokalizacji
+    private LocationCallback callback = new LocationCallback() {
+        @Override
+        public void onLocationResult(LocationResult locationResult) {
+            for (Location location : locationResult.getLocations()) {
+                updateLocation(location);
+                Log.d("GEO", currentLocation.toString());
+                Log.d("GEO", "(" + Double.toString(currentLocation.getLatitude()));
+                displayMyCurrentLocationOverlay();
+            }
+        }
+    };
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        createLocationRequest();
+    }
+
+
+    protected void updateLocation(Location location) {
+        // Logic to handle location object
+        String latVal = Double.toString(location.getLatitude());
+        String lonVal = Double.toString(location.getLongitude());
+
+        String timestamp = Double.toString(location.getTime());
+
+
+        Log.d("LOKACJA", "[" + timestamp + "] Location: " + latVal + ", " + lonVal);
+
+        currentLocation = new JsonGeoPoint(location);
+        Log.d("GEO", Double.toString(currentLocation.getLatitude()));
+        displayMyCurrentLocationOverlay();
+
+    }
+
+    @SuppressLint("MissingPermission")
+    private void createLocationRequest() {
+
+        Log.d("GEO", "createLocationRequest() <------");
+
+        if (hasLocationPermission()) {
+            final Context context = getApplicationContext();
+
+
+            LocationRequest request = new LocationRequest();
+            request.setInterval(5000);
+            request.setFastestInterval(1000);
+            request.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+
+            Log.d("GEO", "onRequestPermissionResults <---");
+
+            mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+
+            mFusedLocationClient.requestLocationUpdates(request, callback, null);
+        }
+
+    }
+
+    private boolean hasLocationPermission() {
+
+        String LOC_PERM = Manifest.permission.ACCESS_FINE_LOCATION;
+
+        return !(ActivityCompat.checkSelfPermission(this, LOC_PERM) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED);
+
+
+        //String permission = Manifest.permission.ACCESS_FINE_LOCATION;
+        //int res = checkCallingOrSelfPermission(permission);
+        //return (res == PackageManager.PERMISSION_GRANTED);
+    }
+
+
+    private void displayMyCurrentLocationOverlay() {
+        Log.d("GEO", "displayOverlay: "+currentLocation.toString());
+        if( currentLocation != null) {
+            if(currentLocationOverlay == null ) {
+                Context context = this.getApplicationContext();
+                currentLocationOverlay = new MyLocationNewOverlay(new GpsMyLocationProvider(context), map);
+                currentLocationOverlay.enableMyLocation();
+                Log.d("GEO", currentLocationOverlay.toString());
+                map.getOverlays().add(currentLocationOverlay);
+                Log.d("GEO", "displayOverlay if true <--");
+            } else {
+//                myCurrentLocationOverlayItem.setPoint(currentLocation);
+//                currentLocationOverlay.requestRedraw();
+                Log.d("GEO", "displayOverlay if false <--");
+            }
+            map.getController().setCenter(currentLocation);
+        }
+    }
+
+    // Okienko dodawania zgłoszeń
     private void ShowPopupWindow(){
         LayoutInflater inflater = (LayoutInflater) map_screen.this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View layout = inflater.inflate(R.layout.report_popup, null);
@@ -224,8 +302,15 @@ public class map_screen extends AppCompatActivity {
 
                 int cat = Integer.parseInt(editTypeNo.getText().toString());
                 String desc = editDesc.getText().toString();
+
+                Log.d("GEO", "POST\n" +
+                        "Cat: "+Integer.toString(cat)+
+                        "\ndesc: "+desc+
+                        "\ngeometry: "+currentLocation.getJSON()+
+                        "\nuser: "+1);
+
                 //{"type": "Point", "coordinates": [21.010725, 52.220428]}
-                mWebService.addZgloszenie(cat, desc, "{\"type\": \"Point\", \"coordinates\": [21.010725, 52.220428]}", 1).enqueue(new Callback<Zgloszenie>() {
+                mWebService.addZgloszenie("JWT "+SessionManager.getToken(sp), cat, desc, currentLocation.getJSON(), 1).enqueue(new Callback<Zgloszenie>() {
                     @Override
                     public void onResponse(Call<Zgloszenie> call, Response<Zgloszenie> response) {
 
@@ -256,20 +341,5 @@ public class map_screen extends AppCompatActivity {
         window.showAtLocation(layout, Gravity.CENTER, 40, 60);
 
 
-    }
-
-    private void displayMyCurrentLocationOverlay() {
-//        if( currentLocation != null) {
-//            if( currentLocationOverlay == null ) {
-//                currentLocationOverlay = new ArrayItemizedOverlay(myLocationMarker);
-//                myCurrentLocationOverlayItem = new OverlayItem(currentLocation, "My Location", "My Location!");
-//                currentLocationOverlay.addItem(myCurrentLocationOverlayItem);
-//                map.getOverlays().add(currentLocationOverlay);
-//            } else {
-//                myCurrentLocationOverlayItem.setPoint(currentLocation);
-//                currentLocationOverlay.requestRedraw();
-//            }
-//            map.getController().setCenter(currentLocation);
-//        }
     }
 }

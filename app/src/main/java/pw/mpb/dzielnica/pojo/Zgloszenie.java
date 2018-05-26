@@ -1,16 +1,15 @@
 package pw.mpb.dzielnica.pojo;
 
-import android.graphics.Point;
 
 /**
- * Created by Mateusz on 20.05.2018.
+ * Zgłoszenie POJO
  */
 
 public class Zgloszenie {
     private int type;
     private int id;
     private String geometry;
-    private int user_id;
+    private int user;
     private String desc;
 
 
@@ -39,11 +38,11 @@ public class Zgloszenie {
     }
 
     public int getUser_id() {
-        return user_id;
+        return user;
     }
 
-    public void setUser_id(int user_id) {
-        this.user_id = user_id;
+    public void setUser_id(int user) {
+        this.user = user;
     }
 
     public String getDesc() {

@@ -1,11 +1,11 @@
 package pw.mpb.dzielnica.pojo;
 
-/**
- * Created by Mateusz on 20.05.2018.
- */
-
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
+
+/**
+ * Dzielnica POJO
+ */
 
 public class Dzielnica {
 

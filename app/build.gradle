@@ -33,6 +33,7 @@ dependencies {
 
     implementation 'org.osmdroid:osmdroid-android:6.0.1'
     implementation 'com.github.Mkergall:osmbonuspack:6.5.1@aar'
+    implementation "com.google.android.gms:play-services-location:11.6.0"
 
     implementation 'com.squareup.retrofit2:retrofit:2.4.0'
     implementation 'com.squareup.retrofit2:converter-gson:2.4.0'

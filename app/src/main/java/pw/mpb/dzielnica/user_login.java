@@ -154,6 +154,9 @@ public class user_login extends AppCompatActivity implements View.OnClickListene
                                 ApiUtils.logResponse(response.body().toString());
                                 Log.d(TAG, "post submitted to API." + response.body().toString());
 
+                                Toast.makeText(user_login.this, "Zostałeś zarejestrowany pomyślnie!", Toast.LENGTH_SHORT).show();
+                                window.dismiss();
+
                             } else {
                                 ApiUtils.logResponse(response.toString());
 
