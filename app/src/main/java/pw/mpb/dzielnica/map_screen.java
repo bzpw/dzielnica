@@ -68,6 +68,7 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 
 
+
 public class map_screen extends AppCompatActivity {
 
     JsonGeoPoint currentLocation;
@@ -316,9 +317,17 @@ public class map_screen extends AppCompatActivity {
 
                         if (response.isSuccessful()) {
                             Toast.makeText(map_screen.this, "OK!", Toast.LENGTH_SHORT).show();
-
+                            Toast.makeText(map_screen.this, "Dodano zgłoszenie!", Toast.LENGTH_SHORT).show();
                         } else {
-                            ApiUtils.logResponse(response.toString());
+                            try {
+                                int code = response.code();
+                                String err = response.errorBody().string();
+                                ApiUtils.logResponse(err);
+                                ApiUtils.showErrToast(getApplicationContext(), code, err);
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                            ApiUtils.logResponse(response.errorBody().toString());
                             Toast.makeText(map_screen.this, "BAD", Toast.LENGTH_SHORT).show();
                         }
                         Toast.makeText(map_screen.this, "Dodano zgłoszenie!", Toast.LENGTH_SHORT).show();
