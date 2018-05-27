@@ -56,7 +56,7 @@ public interface WebService {
                                    @Field("geometry") String geometry,
                                    @Field("user") int user);
 
-    @GET("api/zgloszenia/all")
+    @GET("api/zgloszenia/all/")
     Call<ResponseBody> listZgloszenia(@Header("Authorization") String authHeader);
 
 }

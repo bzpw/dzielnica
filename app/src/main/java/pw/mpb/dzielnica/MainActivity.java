@@ -12,6 +12,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
+import java.io.IOException;
 import java.util.List;
 
 import okhttp3.OkHttpClient;
@@ -43,8 +44,6 @@ public class MainActivity extends AppCompatActivity {
 
 
     SharedPreferences sp;
-
-    private String CLASS_TAG = "ODPOWIEDZSERWERA";
 
     ProgressDialog progressDoalog;
 
@@ -122,25 +121,35 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void onResponse(Call<List<Dzielnica>> call, Response<List<Dzielnica>> response) {
 
-                    List<Dzielnica> data = response.body();
-                    if(data != null) {
-                        for (Dzielnica dz : data) {
-                            Log.d(CLASS_TAG, dz.getName());
+                    if(response.isSuccessful()) {
+
+                        List<Dzielnica> data = response.body();
+                        if(data != null) {
+                            for (Dzielnica dz : data) {
+                                Log.d(ApiUtils.TAG, dz.getName());
+                            }
+                            btnMap.setEnabled(true);
+                            yourButton.setEnabled(true);
+                        } else {
+                            Log.d(ApiUtils.TAG, Integer.toString(response.code()));
                         }
 
-                        progressDoalog.dismiss();
-                        btnMap.setEnabled(true);
-                        yourButton.setEnabled(true);
-
                     } else {
-                        Log.d(CLASS_TAG, Integer.toString(response.code()));
-                        progressDoalog.dismiss();
+                        try {
+                            int code = response.code();
+                            String err = response.errorBody().string();
+                            ApiUtils.logResponse(err);
+                            ApiUtils.showErrToast(getApplicationContext(), code, err);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
                     }
+                    progressDoalog.dismiss();
                 }
 
                 @Override
                 public void onFailure(Call<List<Dzielnica>> call, Throwable t) {
-                    Log.d(CLASS_TAG, "Failure, throwable is " + t);
+                    Log.d(ApiUtils.TAG, "Failure, throwable is " + t);
                     Toast.makeText(MainActivity.this, "Połączenie nieudane!\n"+t, Toast.LENGTH_LONG).show();
                     progressDoalog.dismiss();
                 }
@@ -148,7 +157,7 @@ public class MainActivity extends AppCompatActivity {
             });
 
         } catch (Exception e) {
-            Log.d(CLASS_TAG, e.toString());
+            Log.d(ApiUtils.TAG, e.toString());
         }
 
     }

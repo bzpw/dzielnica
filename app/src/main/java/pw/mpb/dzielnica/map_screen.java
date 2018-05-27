@@ -225,19 +225,25 @@ public class map_screen extends AppCompatActivity {
                 int cat = Integer.parseInt(editTypeNo.getText().toString());
                 String desc = editDesc.getText().toString();
                 //{"type": "Point", "coordinates": [21.010725, 52.220428]}
-                mWebService.addZgloszenie(cat, desc, "{\"type\": \"Point\", \"coordinates\": [21.010725, 52.220428]}", 1).enqueue(new Callback<Zgloszenie>() {
+                mWebService.addZgloszenie("JWT "+SessionManager.getToken(sp), cat, desc, "{\"type\": \"Point\", \"coordinates\": [21.010725, 52.220428]}", 1).enqueue(new Callback<Zgloszenie>() {
                     @Override
                     public void onResponse(Call<Zgloszenie> call, Response<Zgloszenie> response) {
 
                         if (response.isSuccessful()) {
                             Toast.makeText(map_screen.this, "OK!", Toast.LENGTH_SHORT).show();
-
+                            Toast.makeText(map_screen.this, "Dodano zgłoszenie!", Toast.LENGTH_SHORT).show();
                         } else {
-                            ApiUtils.logResponse(response.toString());
+                            try {
+                                int code = response.code();
+                                String err = response.errorBody().string();
+                                ApiUtils.logResponse(err);
+                                ApiUtils.showErrToast(getApplicationContext(), code, err);
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                            ApiUtils.logResponse(response.errorBody().toString());
                             Toast.makeText(map_screen.this, "BAD", Toast.LENGTH_SHORT).show();
                         }
-                        Toast.makeText(map_screen.this, "Dodano zgłoszenie!", Toast.LENGTH_SHORT).show();
-
                         window.dismiss();
                     }
 

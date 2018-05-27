@@ -1,6 +1,8 @@
 package pw.mpb.dzielnica.utils;
 
+import android.content.Context;
 import android.util.Log;
+import android.widget.Toast;
 
 /**
  *
@@ -8,11 +10,10 @@ import android.util.Log;
 
 public class ApiUtils {
 
-    private static String TAG = "API";
+    public static final String TAG = "API";
+    private static final String BASE_URL = "http://192.168.1.104:8000/";
 
     private ApiUtils() {}
-
-    public static final String BASE_URL = "http://dzielnica.sytes.net:8000/";
 
     public static WebService getAPIService() {
 
@@ -26,5 +27,11 @@ public class ApiUtils {
     public static void logFailure(Throwable t) {
         Log.d(TAG, "Failure, throwable is: " + t);
     }
+
+    public static void showErrToast(Context ctx, int code, String err) {
+        Toast.makeText(ctx, "Wystąpił błąd ("+code+"):\n"+err, Toast.LENGTH_LONG).show();
+    }
+
+    public static String getTAG() { return TAG; }
 
 }
