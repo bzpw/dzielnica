@@ -27,11 +27,11 @@ import retrofit2.http.Part;
  */
 
 public interface WebService {
-    @GET("/api/app/dzielnice/list/") // deklarujemy endpoint oraz metodę
-    //void getData(Callback<Zgloszenie> pResponse);
+    @GET("/api/dzielnice/list/") // deklarujemy endpoint oraz metodę
+        //void getData(Callback<Zgloszenie> pResponse);
     Call<List<Dzielnica>> getData();
 
-    @POST("/api/app/user/register/") // deklarujemy endpoint, metodę oraz dane do wysłania
+    @POST("/api/user/register/") // deklarujemy endpoint, metodę oraz dane do wysłania
     @FormUrlEncoded
     Call<User> registerUser(@Field("username") String username,
                             @Field("password") String password,
@@ -39,23 +39,24 @@ public interface WebService {
                             @Field("first_name") String first_name,
                             @Field("first_name") String last_name);
 
-    @POST("/api/app/user/login/")
+    @POST("/api/user/login/")
     @FormUrlEncoded
     Call<Token> loginUser(@Field("username") String username,
                           @Field("password") String password);
 
-    @POST("api/app/user/verify")
+    @POST("api/user/verify/")
     @FormUrlEncoded
     Call<JSONObject> checkIsLogged(@Field("token") String token);
 
-    @POST("api/app/zgloszenia/add")
+    @POST("api/zgloszenia/add/")
     @FormUrlEncoded
-    Call<Zgloszenie> addZgloszenie(@Field("type") int field,
+    Call<Zgloszenie> addZgloszenie(@Header("Authorization") String authHeader,
+                                   @Field("type") int field,
                                    @Field("desc") String desc,
                                    @Field("geometry") String geometry,
-                                   @Field("user_id") int user_id);
+                                   @Field("user") int user);
 
-    @GET("zgloszenia/all")
+    @GET("api/zgloszenia/all")
     Call<ResponseBody> listZgloszenia(@Header("Authorization") String authHeader);
 
 }
