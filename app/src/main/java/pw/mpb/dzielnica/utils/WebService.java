@@ -10,6 +10,7 @@ import okhttp3.MultipartBody;
 import okhttp3.ResponseBody;
 import pw.mpb.dzielnica.pojo.Dzielnica;
 import pw.mpb.dzielnica.pojo.Token;
+import pw.mpb.dzielnica.pojo.Type;
 import pw.mpb.dzielnica.pojo.User;
 import pw.mpb.dzielnica.pojo.Zgloszenie;
 import retrofit2.Call;
@@ -56,7 +57,10 @@ public interface WebService {
                                    @Field("geometry") String geometry,
                                    @Field("user") int user);
 
-    @GET("api/zgloszenia/all/")
+    @GET("api/zgloszenia/list/")
     Call<ResponseBody> listZgloszenia(@Header("Authorization") String authHeader);
+
+    @GET("api/types/list/")
+    Call<List<Type>> listTypes();
 
 }

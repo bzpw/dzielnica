@@ -7,6 +7,7 @@ package pw.mpb.dzielnica.pojo;
 
 public class Zgloszenie {
     private int type;
+//    private Type type;
     private int id;
     private String geometry;
     private int user;
@@ -52,4 +53,12 @@ public class Zgloszenie {
     public void setDesc(String desc) {
         this.desc = desc;
     }
+
+//    public Type getType() {
+//        return type;
+//    }
+//
+//    public void setType(Type type) {
+//        this.type = type;
+//    }
 }

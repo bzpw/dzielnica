@@ -40,4 +40,11 @@ public class JsonGeoPoint extends GeoPoint {
         String latS = Double.toString(this.getLatitude());
         return "{\"type\": \"Point\", \"coordinates\": ["+lonS+", "+latS+"]}";
     }
+
+    public String getPOINT() {
+        String lonS = Double.toString(this.getLongitude());
+        String latS = Double.toString(this.getLatitude());
+        return "POINT("+lonS+" "+latS+")";
+
+    }
 }

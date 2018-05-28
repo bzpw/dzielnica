@@ -36,6 +36,16 @@ public class SessionManager {
         editor.apply();
     }
 
+    /*
+    * Testowe loginy
+    * login:    hasło       grupa
+    * ============
+    *
+    * wezyr:    nicponim    (superuser)
+    * szarak:   SzareHaslo  (-)
+    *
+     */
+
     public static Boolean isLogged(SharedPreferences sp, WebService ws) throws IOException {
         String current_token = getToken(sp);
         ws.checkIsLogged(current_token).execute();

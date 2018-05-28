@@ -60,6 +60,7 @@ import okhttp3.ResponseBody;
 import pw.mpb.dzielnica.pojo.Zgloszenie;
 import pw.mpb.dzielnica.utils.ApiUtils;
 import pw.mpb.dzielnica.utils.SessionManager;
+import pw.mpb.dzielnica.utils.Utils;
 import pw.mpb.dzielnica.utils.WebService;
 import pw.mpb.dzielnica.utils.osm.JsonGeoPoint;
 import retrofit2.Call;
@@ -233,12 +234,7 @@ public class map_screen extends AppCompatActivity {
 
     @SuppressLint("MissingPermission")
     private void createLocationRequest() {
-
-        Log.d("GEO", "createLocationRequest() <------");
-
-        if (hasLocationPermission()) {
-            final Context context = getApplicationContext();
-
+        if (Utils.hasLocationPermission(this)) {
 
             LocationRequest request = new LocationRequest();
             request.setInterval(5000);
@@ -248,24 +244,10 @@ public class map_screen extends AppCompatActivity {
             Log.d("GEO", "onRequestPermissionResults <---");
 
             mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
-
             mFusedLocationClient.requestLocationUpdates(request, callback, null);
         }
 
     }
-
-    private boolean hasLocationPermission() {
-
-        String LOC_PERM = Manifest.permission.ACCESS_FINE_LOCATION;
-
-        return !(ActivityCompat.checkSelfPermission(this, LOC_PERM) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED);
-
-
-        //String permission = Manifest.permission.ACCESS_FINE_LOCATION;
-        //int res = checkCallingOrSelfPermission(permission);
-        //return (res == PackageManager.PERMISSION_GRANTED);
-    }
-
 
     private void displayMyCurrentLocationOverlay() {
         Log.d("GEO", "displayOverlay: "+currentLocation.toString());
@@ -276,13 +258,11 @@ public class map_screen extends AppCompatActivity {
                 currentLocationOverlay.enableMyLocation();
                 Log.d("GEO", currentLocationOverlay.toString());
                 map.getOverlays().add(currentLocationOverlay);
-                Log.d("GEO", "displayOverlay if true <--");
+
             } else {
-//                myCurrentLocationOverlayItem.setPoint(currentLocation);
-//                currentLocationOverlay.requestRedraw();
-                Log.d("GEO", "displayOverlay if false <--");
+
             }
-            map.getController().setCenter(currentLocation);
+
         }
     }
 
@@ -304,42 +284,7 @@ public class map_screen extends AppCompatActivity {
                 int cat = Integer.parseInt(editTypeNo.getText().toString());
                 String desc = editDesc.getText().toString();
 
-                Log.d("GEO", "POST\n" +
-                        "Cat: "+Integer.toString(cat)+
-                        "\ndesc: "+desc+
-                        "\ngeometry: "+currentLocation.getJSON()+
-                        "\nuser: "+1);
-
-                //{"type": "Point", "coordinates": [21.010725, 52.220428]}
-                mWebService.addZgloszenie("JWT "+SessionManager.getToken(sp), cat, desc, currentLocation.getJSON(), 1).enqueue(new Callback<Zgloszenie>() {
-                    @Override
-                    public void onResponse(Call<Zgloszenie> call, Response<Zgloszenie> response) {
-
-                        if (response.isSuccessful()) {
-                            Toast.makeText(map_screen.this, "OK!", Toast.LENGTH_SHORT).show();
-                            Toast.makeText(map_screen.this, "Dodano zgłoszenie!", Toast.LENGTH_SHORT).show();
-                        } else {
-                            try {
-                                int code = response.code();
-                                String err = response.errorBody().string();
-                                ApiUtils.logResponse(err);
-                                ApiUtils.showErrToast(getApplicationContext(), code, err);
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
-                            ApiUtils.logResponse(response.errorBody().toString());
-                            Toast.makeText(map_screen.this, "BAD", Toast.LENGTH_SHORT).show();
-                        }
-                        Toast.makeText(map_screen.this, "Dodano zgłoszenie!", Toast.LENGTH_SHORT).show();
-
-                        window.dismiss();
-                    }
-
-                    @Override
-                    public void onFailure(Call<Zgloszenie> call, Throwable t) {
-                        ApiUtils.logFailure(t);
-                    }
-                });
+                dodajZgloszenie(cat, desc, 1, "POINT");
             }
         });
 
@@ -350,5 +295,42 @@ public class map_screen extends AppCompatActivity {
         window.showAtLocation(layout, Gravity.CENTER, 40, 60);
 
 
+    }
+
+    private void dodajZgloszenie(int cat, String desc, int user, String JSONmethod) {
+
+        String geometry = "";
+        if (JSONmethod.equals("POINT"))
+            geometry = currentLocation.getPOINT();
+        else if (JSONmethod.equals("GEOJSON"))
+            geometry = currentLocation.getJSON();
+
+        mWebService.addZgloszenie("JWT "+SessionManager.getToken(sp), cat, desc, geometry, user).enqueue(new Callback<Zgloszenie>() {
+            @Override
+            public void onResponse(Call<Zgloszenie> call, Response<Zgloszenie> response) {
+
+                if (response.isSuccessful()) {
+                    Toast.makeText(map_screen.this, "Dodano zgłoszenie!", Toast.LENGTH_SHORT).show();
+                } else {
+                    try {
+                        int code = response.code();
+                        String err = response.errorBody().string();
+                        ApiUtils.logResponse(err);
+                        ApiUtils.showErrToast(getApplicationContext(), code, err);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    ApiUtils.logResponse(response.errorBody().toString());
+                }
+                Toast.makeText(map_screen.this, "Dodano zgłoszenie!", Toast.LENGTH_SHORT).show();
+
+                window.dismiss();
+            }
+
+            @Override
+            public void onFailure(Call<Zgloszenie> call, Throwable t) {
+                ApiUtils.logFailure(t);
+            }
+        });
     }
 }
