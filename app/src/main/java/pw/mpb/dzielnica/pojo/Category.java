@@ -39,4 +39,9 @@ public class Category {
         this.icon = icon;
     }
 
+    @Override
+    public String toString() {
+        return this.catName;
+    }
+
 }

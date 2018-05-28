@@ -12,12 +12,14 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
+import com.google.gson.Gson;
+
 import java.io.IOException;
 import java.util.List;
 
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
-import pw.mpb.dzielnica.pojo.Dzielnica;
+import pw.mpb.dzielnica.pojo.Type;
 import pw.mpb.dzielnica.utils.ApiUtils;
 import pw.mpb.dzielnica.utils.RetrofitClient;
 import pw.mpb.dzielnica.utils.SessionManager;
@@ -116,18 +118,28 @@ public class MainActivity extends AppCompatActivity {
         progressDoalog.show();
 
         try {
-            Call<List<Dzielnica>> call = myWebService.getData();
-            call.enqueue(new Callback<List<Dzielnica>>() {
+            Call<List<Type>> call = myWebService.listTypes();
+            call.enqueue(new Callback<List<Type>>() {
                 @Override
-                public void onResponse(Call<List<Dzielnica>> call, Response<List<Dzielnica>> response) {
+                public void onResponse(Call<List<Type>> call, Response<List<Type>> response) {
 
                     if(response.isSuccessful()) {
 
-                        List<Dzielnica> data = response.body();
+                        List<Type> data = response.body();
                         if(data != null) {
-                            for (Dzielnica dz : data) {
-                                Log.d(ApiUtils.TAG, dz.getName());
+                            for (Type dz : data) {
+                                Log.d(ApiUtils.TAG, dz.toString());
                             }
+
+                            Gson gson = new Gson();
+                            String json = gson.toJson(data);
+                            // Dodawanie listy typów zgłoszeń do SharedPreferences -> będą tworzyły listę do spinnera
+                            SharedPreferences sp_typy = getSharedPreferences("TYPY", MODE_PRIVATE);
+                            SharedPreferences.Editor prefsEditor = sp_typy.edit();
+                            //String json = data.string();
+                            prefsEditor.putString("Typy", json);
+                            prefsEditor.apply();
+
                             btnMap.setEnabled(true);
                             yourButton.setEnabled(true);
                         } else {
@@ -148,7 +160,7 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 @Override
-                public void onFailure(Call<List<Dzielnica>> call, Throwable t) {
+                public void onFailure(Call<List<Type>> call, Throwable t) {
                     Log.d(ApiUtils.TAG, "Failure, throwable is " + t);
                     Toast.makeText(MainActivity.this, "Połączenie nieudane!\n"+t, Toast.LENGTH_LONG).show();
                     progressDoalog.dismiss();

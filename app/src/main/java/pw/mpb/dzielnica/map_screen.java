@@ -28,10 +28,12 @@ import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.PopupWindow;
 import android.util.Log;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -40,6 +42,8 @@ import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 import org.osmdroid.api.IMapController;
 import org.osmdroid.config.Configuration;
@@ -57,6 +61,7 @@ import java.io.IOException;
 import java.util.List;
 
 import okhttp3.ResponseBody;
+import pw.mpb.dzielnica.pojo.Type;
 import pw.mpb.dzielnica.pojo.Zgloszenie;
 import pw.mpb.dzielnica.utils.ApiUtils;
 import pw.mpb.dzielnica.utils.SessionManager;
@@ -125,13 +130,17 @@ public class map_screen extends AppCompatActivity {
         map.getController().setCenter(center);
 
 
-        //GeoJSONParse("{\"type\":\"FeatureCollection\",\"features\":[{\"id\":1,\"type\":\"Feature\",\"geometry\":{\"type\":\"Point\",\"coordinates\":[20.945648734753988,52.26411927892249]},\"properties\":{\"img\":null,\"type\":1}},{\"id\":2,\"type\":\"Feature\",\"geometry\":{\"type\":\"Point\",\"coordinates\":[20.992941444098115,52.2530865417704]},\"properties\":{\"img\":null,\"type\":1}},{\"id\":3,\"type\":\"Feature\",\"geometry\":{\"type\":\"Point\",\"coordinates\":[21.010725,52.220428]},\"properties\":{\"img\":\"Schopenhauer_wN6nkI5.jpg\",\"type\":1}},{\"id\":4,\"type\":\"Feature\",\"geometry\":{\"type\":\"Point\",\"coordinates\":[21.0096950317385,52.225990832712824]},\"properties\":{\"img\":\"media/images/zgloszenia/4.jpg\",\"type\":1}}]}");
+        //GeoJSONParse("{\"type\":\"FeatureCollection\",\"features\":[{\"id\":1,\"type\":\"Feature\",\"geometry\":{\"type\":\"Point\",\"coordinates\":[20.945648734753988,52.26411927892249]},\"properties\":{\"img\":null,\"type\":1}},{\"id\":2,\"type\":\"Feature\",\"geometry\":{\"type\":\"Point\",\"coordinates\":[20.992941444098115,52.2530865417704]},\"properties\":{\"img\":null,\"type\":1}},{\"id\":3,\"type\":\"Feature\",\"geometry\":{\"type\":\"Point\",\"coordinates\":[21.010725,52.220428]},\"properties\":{\"img\":\"Schopenhauer_wN6nkI5.jpg\",\"type\":1}},{\"id\":4,\"type\":\"Feature\",\"geometry\":{\"type\":\"Point\",\"coordinates\":[21.0096950317385,52.225990832712824]},\"properties\":{\"img\":\"media/images/typy/4.jpg\",\"type\":1}}]}");
 
         cameraBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Log.d("ONClICK", "costam");
-                ShowPopupWindow();
+                try {
+                    ShowPopupWindow();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
 
 
             }
@@ -144,11 +153,11 @@ public class map_screen extends AppCompatActivity {
         map.onResume();
 
         createLocationRequest();
-        refreshZgloszenia();
+        refreshtypy();
 
     }
 
-    private void refreshZgloszenia() {
+    private void refreshtypy() {
         mWebService.listZgloszenia("JWT " + SessionManager.getToken(sp)).enqueue(new Callback<ResponseBody>() {
             @Override
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
@@ -267,13 +276,44 @@ public class map_screen extends AppCompatActivity {
     }
 
     // Okienko dodawania zgłoszeń
-    private void ShowPopupWindow(){
+    private void ShowPopupWindow() throws IOException {
         LayoutInflater inflater = (LayoutInflater) map_screen.this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View layout = inflater.inflate(R.layout.report_popup, null);
         window = new PopupWindow(layout, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT, true);
 
-        final EditText editTypeNo = (EditText)layout.findViewById(R.id.repCatNrTxt);
+        //final EditText editTypeNo = (EditText)layout.findViewById(R.id.repCatNrTxt);
+        final EditText editTypeNo = (EditText)layout.findViewById(R.id.repReportTxt);
         final EditText editDesc = (EditText)layout.findViewById(R.id.repReportTxt);
+
+        SharedPreferences sp_typy = getSharedPreferences("TYPY", MODE_PRIVATE);
+        SharedPreferences.Editor prefsEditor = sp_typy.edit();
+
+        Gson gson = new Gson();
+        String json = sp_typy.getString("Typy", "");
+        Log.d("API", json);
+
+        java.lang.reflect.Type type = new TypeToken<List<Type>>(){}.getType();
+        List<Type> typy = gson.fromJson(json, type);
+
+        Log.d("API", type.toString());
+        for (Type typ: typy) {
+            Log.d("API", typ.toString());
+        }
+
+        
+        // Gets all typy but replace with whatever list of typy you want.
+        //List<Type> typy = mWebService.listTypes().execute().body();
+
+        ArrayAdapter typeAdapter = new ArrayAdapter(getApplicationContext(), R.layout.cat_spinner, typy);
+
+        Spinner typeSpinner = (Spinner) layout.findViewById(R.id.repSpinner);
+        typeSpinner.setAdapter(typeAdapter);
+
+
+
+        // And to get the actual User object that was selected, you can do this.
+        Type typ = (Type) typeSpinner.getSelectedItem();
+
 
         Button btnReport = (Button)layout.findViewById(R.id.repReportBtn);
 

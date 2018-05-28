@@ -31,12 +31,20 @@ public class Type {
         this.typeName = typeName;
     }
 
-    public Category getCategory() {
-        return category;
+    public String getCategory() {
+        return category.toString();
     }
 
     public void setCategory(Category category) {
         this.category = category;
     }
+
+    @Override
+    public String toString() {
+
+        return this.typeName + " [" + this.getCategory() + "]";
+
+    }
+
 
 }
