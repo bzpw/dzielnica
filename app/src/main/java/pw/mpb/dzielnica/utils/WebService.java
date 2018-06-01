@@ -21,6 +21,7 @@ import retrofit2.http.Header;
 import retrofit2.http.Multipart;
 import retrofit2.http.POST;
 import retrofit2.http.Part;
+import retrofit2.http.Url;
 
 /**
  * Klasa służąca do komunikacji pomiędzy klientem Android, a REST API Django na serwerze
@@ -62,5 +63,11 @@ public interface WebService {
 
     @GET("api/types/list/")
     Call<List<Type>> listTypes();
+
+    @GET
+    Call<ResponseBody> getCatIcons();
+
+    @GET
+    Call<ResponseBody> downloadFileWithDynamicUrlSync(@Url String fileUrl);
 
 }

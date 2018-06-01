@@ -3,6 +3,7 @@ package pw.mpb.dzielnica;
 import android.content.Context;
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 import android.content.SharedPreferences;
 import android.support.v7.app.AppCompatActivity;
@@ -12,12 +13,20 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
+import com.google.android.gms.common.api.Api;
 import com.google.gson.Gson;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FilenameFilter;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.List;
 
 import okhttp3.OkHttpClient;
+import okhttp3.ResponseBody;
 import okhttp3.logging.HttpLoggingInterceptor;
 import pw.mpb.dzielnica.pojo.Type;
 import pw.mpb.dzielnica.utils.ApiUtils;
@@ -75,14 +84,14 @@ public class MainActivity extends AppCompatActivity {
         btnConnect = (Button) findViewById(R.id.btnConnect);
 
 
-        yourButton = (Button)findViewById(R.id.button2);
+        yourButton = (Button) findViewById(R.id.button2);
 
 //        yourButton.setEnabled(false);
 //        btnMap.setEnabled(false);
         btnLogout.setEnabled(true);
 
-        yourButton.setOnClickListener(new View.OnClickListener(){
-            public void onClick(View v){
+        yourButton.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
                 startActivity(new Intent(MainActivity.this, user_login.class));
             }
         });
@@ -94,7 +103,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        btnLogout.setOnClickListener(new View.OnClickListener(){
+        btnLogout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 SessionManager.removeToken(sp);
@@ -102,7 +111,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        btnConnect.setOnClickListener(new View.OnClickListener(){
+        btnConnect.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 connect_to_db();
@@ -112,7 +121,7 @@ public class MainActivity extends AppCompatActivity {
         connect_to_db();
     }
 
-    protected void connect_to_db(){
+    protected void connect_to_db() {
 
         // Show it
         progressDoalog.show();
@@ -123,13 +132,12 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void onResponse(Call<List<Type>> call, Response<List<Type>> response) {
 
-                    if(response.isSuccessful()) {
+                    if (response.isSuccessful()) {
 
                         List<Type> data = response.body();
-                        if(data != null) {
-                            for (Type dz : data) {
-                                Log.d(ApiUtils.TAG, dz.toString());
-                            }
+
+                        if (data != null) {
+                            downloadCatIcons(data);
 
                             Gson gson = new Gson();
                             String json = gson.toJson(data);
@@ -162,7 +170,7 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void onFailure(Call<List<Type>> call, Throwable t) {
                     Log.d(ApiUtils.TAG, "Failure, throwable is " + t);
-                    Toast.makeText(MainActivity.this, "Połączenie nieudane!\n"+t, Toast.LENGTH_LONG).show();
+                    Toast.makeText(MainActivity.this, "Połączenie nieudane!\n" + t, Toast.LENGTH_LONG).show();
                     progressDoalog.dismiss();
                 }
 
@@ -173,5 +181,47 @@ public class MainActivity extends AppCompatActivity {
         }
 
     }
+
+    private void downloadCatIcons(List<Type> data) {
+        List<String> usedNames = new ArrayList<>();
+
+        for (Type el : data) {
+            //Log.d(ApiUtils.TAG, el.toString());
+
+            String url = el.getCategory().getIcon();
+            if (url != null) {
+                final String filename = url.substring(url.lastIndexOf("/")+1);
+                if(!usedNames.contains(filename)) {
+                    Call<ResponseBody> download_resp = myWebService.downloadFileWithDynamicUrlSync(url);
+                    download_resp.enqueue(new Callback<ResponseBody>() {
+                        @Override
+                        public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                            if (response.isSuccessful()) {
+                                Log.d(ApiUtils.TAG, "server contacted and has file");
+
+                                boolean writtenToDisk = ApiUtils.writeResponseBodyToDisk(getApplicationContext(), response.body(), "cat", filename);
+
+                                Log.d(ApiUtils.TAG, "file download was a success? " + writtenToDisk);
+
+                            } else {
+                                Log.d(ApiUtils.TAG, "server contact failed");
+
+                            }
+                        }
+
+                        @Override
+                        public void onFailure(Call<ResponseBody> call, Throwable t) {
+                            ApiUtils.logFailure(t);
+                        }
+                    });
+                    usedNames.add(filename);
+                } else {
+                    Log.d(ApiUtils.TAG, filename+" already downloaded");
+                }
+            }
+        }
+        usedNames.clear();
+    }
+
 
 }

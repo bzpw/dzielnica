@@ -1,5 +1,6 @@
 package pw.mpb.dzielnica;
 
+import org.json.JSONObject;
 import org.osmdroid.bonuspack.kml.KmlDocument;
 import org.osmdroid.bonuspack.kml.Style;
 import org.osmdroid.util.GeoPoint;
@@ -11,6 +12,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.ColorDrawable;
@@ -37,12 +39,14 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.common.api.Api;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 
 import org.osmdroid.api.IMapController;
@@ -57,6 +61,7 @@ import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider;
 import org.osmdroid.views.overlay.mylocation.IMyLocationProvider;
 import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
@@ -68,6 +73,7 @@ import pw.mpb.dzielnica.utils.SessionManager;
 import pw.mpb.dzielnica.utils.Utils;
 import pw.mpb.dzielnica.utils.WebService;
 import pw.mpb.dzielnica.utils.osm.JsonGeoPoint;
+import pw.mpb.dzielnica.utils.osm.MyKmlStyler;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -194,10 +200,30 @@ public class map_screen extends AppCompatActivity {
     public void GeoJSONParse(String geoJSON) {
         KmlDocument kmlDocument = new KmlDocument();
         kmlDocument.parseGeoJSON(geoJSON);
+
+
+
+        File sd = getExternalFilesDir(null);
+        File image = new File(sd.getPath() + File.separator + "1.png");
+        Bitmap bitmap_1 = Bitmap.createScaledBitmap(BitmapFactory.decodeFile(image.getPath()), 50, 50, false);
+        Style style_1 = new Style(bitmap_1, 0x901010AA, 5f, 0x20AA1010);
+
+        File image_2 = new File(sd.getPath() + File.separator + "2.png");
+        Bitmap bitmap_2 = Bitmap.createScaledBitmap(BitmapFactory.decodeFile(image_2.getPath()), 50, 50, false);
+        Style style_2 = new Style(bitmap_2, 0x901010AA, 5f, 0x20AA1010);
+
+        kmlDocument.putStyle("1.png", style_1);
+        kmlDocument.putStyle("2.png", style_2);
+
         Drawable defaultMarker = getResources().getDrawable(R.drawable.marker_default);
         Bitmap defaultBitmap = ((BitmapDrawable) defaultMarker).getBitmap();
-        Style defaultStyle = new Style(defaultBitmap, 0x901010AA, 5f, 0x20AA1010);
-        FolderOverlay geoJsonOverlay = (FolderOverlay) kmlDocument.mKmlRoot.buildOverlay(map, defaultStyle, null, kmlDocument);
+        Style mdefaultStyle = new Style(defaultBitmap, 0x901010AA, 5f, 0x20AA1010);
+
+        MyKmlStyler styler = new MyKmlStyler(map, mdefaultStyle, kmlDocument);
+        FolderOverlay geoJsonOverlay = (FolderOverlay) kmlDocument.mKmlRoot.buildOverlay(map, null, styler, kmlDocument);
+
+
+        //kmlDocument.mKmlRoot.
         map.getOverlays().add(geoJsonOverlay);
         map.invalidate();
     }
@@ -286,7 +312,6 @@ public class map_screen extends AppCompatActivity {
         final EditText editDesc = (EditText)layout.findViewById(R.id.repReportTxt);
 
         SharedPreferences sp_typy = getSharedPreferences("TYPY", MODE_PRIVATE);
-        SharedPreferences.Editor prefsEditor = sp_typy.edit();
 
         Gson gson = new Gson();
         String json = sp_typy.getString("Typy", "");
@@ -295,33 +320,20 @@ public class map_screen extends AppCompatActivity {
         java.lang.reflect.Type type = new TypeToken<List<Type>>(){}.getType();
         List<Type> typy = gson.fromJson(json, type);
 
-        Log.d("API", type.toString());
-        for (Type typ: typy) {
-            Log.d("API", typ.toString());
-        }
 
-        
-        // Gets all typy but replace with whatever list of typy you want.
-        //List<Type> typy = mWebService.listTypes().execute().body();
-
+        // Spinner
         ArrayAdapter typeAdapter = new ArrayAdapter(getApplicationContext(), R.layout.cat_spinner, typy);
 
-        Spinner typeSpinner = (Spinner) layout.findViewById(R.id.repSpinner);
+        final Spinner typeSpinner = (Spinner) layout.findViewById(R.id.repSpinner);
         typeSpinner.setAdapter(typeAdapter);
-
-
-
-        // And to get the actual User object that was selected, you can do this.
-        Type typ = (Type) typeSpinner.getSelectedItem();
-
 
         Button btnReport = (Button)layout.findViewById(R.id.repReportBtn);
 
         btnReport.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
-                int cat = Integer.parseInt(editTypeNo.getText().toString());
+                Type typ = (Type) typeSpinner.getSelectedItem();
+                int cat = typ.getId();
                 String desc = editDesc.getText().toString();
 
                 dodajZgloszenie(cat, desc, 1, "POINT");

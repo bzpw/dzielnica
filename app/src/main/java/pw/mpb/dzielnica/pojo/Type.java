@@ -31,7 +31,7 @@ public class Type {
         this.typeName = typeName;
     }
 
-    public String getCategory() {
+    public String getCategoryName() {
         return category.toString();
     }
 
@@ -42,9 +42,12 @@ public class Type {
     @Override
     public String toString() {
 
-        return this.typeName + " [" + this.getCategory() + "]";
+        return this.typeName + " [" + this.getCategoryName() + "]";
 
     }
 
 
+    public Category getCategory() {
+        return category;
+    }
 }
