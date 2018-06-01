@@ -66,6 +66,7 @@ import java.io.IOException;
 import java.util.List;
 
 import okhttp3.ResponseBody;
+import pw.mpb.dzielnica.pojo.Category;
 import pw.mpb.dzielnica.pojo.Type;
 import pw.mpb.dzielnica.pojo.Zgloszenie;
 import pw.mpb.dzielnica.utils.ApiUtils;
@@ -101,7 +102,8 @@ public class map_screen extends AppCompatActivity {
     private WebService mWebService;
 
     SharedPreferences sp;
-
+    SharedPreferences sp_typy;
+    SharedPreferences sp_kategorie;
 
     @SuppressLint("MissingPermission")
     @Override
@@ -121,6 +123,9 @@ public class map_screen extends AppCompatActivity {
 
         // Token, REST API
         sp = getSharedPreferences("authentication", MODE_PRIVATE);
+        sp_typy = getSharedPreferences("TYPY", MODE_PRIVATE);
+        sp_kategorie = getSharedPreferences("KATEGORIE", MODE_PRIVATE);
+
         mWebService = ApiUtils.getAPIService();
 
         cameraBtn = (FloatingActionButton) findViewById(R.id.cameraBtn);
@@ -201,29 +206,40 @@ public class map_screen extends AppCompatActivity {
         KmlDocument kmlDocument = new KmlDocument();
         kmlDocument.parseGeoJSON(geoJSON);
 
-
-
+        // ścieżka do pamięci telefonu
         File sd = getExternalFilesDir(null);
-        File image = new File(sd.getPath() + File.separator + "1.png");
-        Bitmap bitmap_1 = Bitmap.createScaledBitmap(BitmapFactory.decodeFile(image.getPath()), 50, 50, false);
-        Style style_1 = new Style(bitmap_1, 0x901010AA, 5f, 0x20AA1010);
 
-        File image_2 = new File(sd.getPath() + File.separator + "2.png");
-        Bitmap bitmap_2 = Bitmap.createScaledBitmap(BitmapFactory.decodeFile(image_2.getPath()), 50, 50, false);
-        Style style_2 = new Style(bitmap_2, 0x901010AA, 5f, 0x20AA1010);
+        // Dodawanie styli na podstawie pobranych wcześniej
+        Gson gson = new Gson();
+        String json_kategorie = sp_kategorie.getString("Kategorie", null);
+        java.lang.reflect.Type type = new TypeToken<List<Category>>(){}.getType();
+        List<Category> cats = gson.fromJson(json_kategorie, type);
 
-        kmlDocument.putStyle("1.png", style_1);
-        kmlDocument.putStyle("2.png", style_2);
+        for (Category kategoria : cats) {
+            // TODO: wywalić to gdzieś indziej
+            String filename = "";
+            if(kategoria.getIcon() != null) {
+                filename = kategoria.getIcon().substring(kategoria.getIcon().lastIndexOf('/') + 1);
 
+                File img = new File(sd.getPath() + File.separator + filename);
+                Bitmap bitmap = Bitmap.createScaledBitmap(BitmapFactory.decodeFile(img.getPath()), 50, 50, false);
+                Style style = new Style(bitmap, 0x901010AA, 5f, 0x20AA1010);
+
+                kmlDocument.putStyle(Integer.toString(kategoria.getId()), style);
+            }
+
+        }
+
+        // Domyślny marker jeśli nie ma ikonki
         Drawable defaultMarker = getResources().getDrawable(R.drawable.marker_default);
         Bitmap defaultBitmap = ((BitmapDrawable) defaultMarker).getBitmap();
         Style mdefaultStyle = new Style(defaultBitmap, 0x901010AA, 5f, 0x20AA1010);
 
+        // Styler do zmiany ikonek w zależności od kategorii
         MyKmlStyler styler = new MyKmlStyler(map, mdefaultStyle, kmlDocument);
         FolderOverlay geoJsonOverlay = (FolderOverlay) kmlDocument.mKmlRoot.buildOverlay(map, null, styler, kmlDocument);
 
 
-        //kmlDocument.mKmlRoot.
         map.getOverlays().add(geoJsonOverlay);
         map.invalidate();
     }
@@ -311,11 +327,12 @@ public class map_screen extends AppCompatActivity {
         final EditText editTypeNo = (EditText)layout.findViewById(R.id.repReportTxt);
         final EditText editDesc = (EditText)layout.findViewById(R.id.repReportTxt);
 
-        SharedPreferences sp_typy = getSharedPreferences("TYPY", MODE_PRIVATE);
-
         Gson gson = new Gson();
         String json = sp_typy.getString("Typy", "");
         Log.d("API", json);
+
+        String json_cats = sp_kategorie.getString("Kategorie", null);
+        Log.d("API-kategorie", json_cats);
 
         java.lang.reflect.Type type = new TypeToken<List<Type>>(){}.getType();
         List<Type> typy = gson.fromJson(json, type);

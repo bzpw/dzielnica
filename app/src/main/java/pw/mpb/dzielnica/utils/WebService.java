@@ -8,6 +8,7 @@ import java.util.List;
 
 import okhttp3.MultipartBody;
 import okhttp3.ResponseBody;
+import pw.mpb.dzielnica.pojo.Category;
 import pw.mpb.dzielnica.pojo.Dzielnica;
 import pw.mpb.dzielnica.pojo.Token;
 import pw.mpb.dzielnica.pojo.Type;
@@ -63,6 +64,9 @@ public interface WebService {
 
     @GET("api/types/list/")
     Call<List<Type>> listTypes();
+
+    @GET("api/cats/icons/")
+    Call<List<Category>> listCategories();
 
     @GET
     Call<ResponseBody> getCatIcons();

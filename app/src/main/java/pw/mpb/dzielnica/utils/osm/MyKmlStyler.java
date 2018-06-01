@@ -55,12 +55,9 @@ public class MyKmlStyler implements KmlFeature.Styler {
         Gson gson = new Gson();
         java.lang.reflect.Type tt = new TypeToken<Type>(){}.getType();
         Type obj = gson.fromJson(type, tt);
-        String icon = obj.getCategory().getIcon();
-        if(icon != null) {
-            icon = icon.substring(icon.lastIndexOf("/")+1);
-            kmlPlacemark.mStyle = icon;
-            Log.d("OSM", icon);
-            Log.d("OSM-style", kmlPlacemark.mStyle);
+        String id = Integer.toString(obj.getCategory().getId());
+        if(id != null) {
+            kmlPlacemark.mStyle = id;
         }
         kmlPoint.applyDefaultStyling(marker, mDefaultStyle, kmlPlacemark, mKmlDocument, map);
     }

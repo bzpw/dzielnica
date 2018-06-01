@@ -28,6 +28,7 @@ import java.util.List;
 import okhttp3.OkHttpClient;
 import okhttp3.ResponseBody;
 import okhttp3.logging.HttpLoggingInterceptor;
+import pw.mpb.dzielnica.pojo.Category;
 import pw.mpb.dzielnica.pojo.Type;
 import pw.mpb.dzielnica.utils.ApiUtils;
 import pw.mpb.dzielnica.utils.RetrofitClient;
@@ -55,6 +56,8 @@ public class MainActivity extends AppCompatActivity {
 
 
     SharedPreferences sp;
+    SharedPreferences sp_typy;
+    SharedPreferences sp_kategorie;
 
     ProgressDialog progressDoalog;
 
@@ -66,8 +69,10 @@ public class MainActivity extends AppCompatActivity {
         Context ctx = getApplicationContext();
         Configuration.getInstance().load(ctx, PreferenceManager.getDefaultSharedPreferences(ctx));
 
-        //Przygotowanie SharedPreferences do przechowywania tokena
+        //Przygotowanie SharedPreferences do przechowywania tokena, listy typów i listy kategorii
         sp = getSharedPreferences("authentication", MODE_PRIVATE);
+        sp_typy = getSharedPreferences("TYPY", MODE_PRIVATE);
+        sp_kategorie = getSharedPreferences("KATEGORIE", MODE_PRIVATE);
 
         // Tworzymy klienta
         myWebService = ApiUtils.getAPIService();
@@ -137,12 +142,30 @@ public class MainActivity extends AppCompatActivity {
                         List<Type> data = response.body();
 
                         if (data != null) {
+                            // Pobieranie ikon
                             downloadCatIcons(data);
+
+                            // Pobieranie listy kategorii
+                            myWebService.listCategories().enqueue(new Callback<List<Category>>() {
+                                @Override
+                                public void onResponse(Call<List<Category>> call, Response<List<Category>> response) {
+                                    if (response.isSuccessful()) {
+                                        ApiUtils.logResponse("Jest sukcesful");
+                                        saveCategories(response.body());
+
+                                    }
+                                }
+
+                                @Override
+                                public void onFailure(Call<List<Category>> call, Throwable t) {
+
+                                }
+                            });
 
                             Gson gson = new Gson();
                             String json = gson.toJson(data);
+
                             // Dodawanie listy typów zgłoszeń do SharedPreferences -> będą tworzyły listę do spinnera
-                            SharedPreferences sp_typy = getSharedPreferences("TYPY", MODE_PRIVATE);
                             SharedPreferences.Editor prefsEditor = sp_typy.edit();
                             //String json = data.string();
                             prefsEditor.putString("Typy", json);
@@ -223,5 +246,16 @@ public class MainActivity extends AppCompatActivity {
         usedNames.clear();
     }
 
+    private void saveCategories(List<Category> cats) {
+                Gson gson = new Gson();
+                String json = gson.toJson(cats);
+
+                // Dodawanie listy kategorii do SharedPreferences -> będą potrzebne do ikonek
+                SharedPreferences.Editor prefsEditor = sp_kategorie.edit();
+                //String json = data.string();
+                prefsEditor.putString("Kategorie", json);
+                prefsEditor.apply();
+
+    }
 
 }
