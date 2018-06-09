@@ -9,6 +9,7 @@ import org.osmdroid.views.MapView;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -263,7 +264,7 @@ public class map_screen extends AppCompatActivity {
                                            @NonNull String[] permissions,
                                            @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        createLocationRequest();
+        //createLocationRequest();
     }
 
 
@@ -345,6 +346,7 @@ public class map_screen extends AppCompatActivity {
         typeSpinner.setAdapter(typeAdapter);
 
         Button btnReport = (Button)layout.findViewById(R.id.repReportBtn);
+        Button btnCamera = (Button)layout.findViewById(R.id.repCameraBtn);
 
         btnReport.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -357,7 +359,13 @@ public class map_screen extends AppCompatActivity {
             }
         });
 
-
+        btnCamera.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
+                startActivity(new Intent(map_screen.this, AndroidCameraApi.class));
+            }
+        });
 
         window.setBackgroundDrawable(new ColorDrawable(Color.WHITE));
         window.setOutsideTouchable(false);

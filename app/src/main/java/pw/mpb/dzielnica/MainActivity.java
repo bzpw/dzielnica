@@ -97,6 +97,7 @@ public class MainActivity extends AppCompatActivity {
 
         yourButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
+                finish();
                 startActivity(new Intent(MainActivity.this, user_login.class));
             }
         });
@@ -104,6 +105,7 @@ public class MainActivity extends AppCompatActivity {
         btnMap.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                finish();
                 startActivity(new Intent(MainActivity.this, map_screen.class));
             }
         });

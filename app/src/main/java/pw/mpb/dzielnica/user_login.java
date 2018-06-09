@@ -194,6 +194,7 @@ public class user_login extends AppCompatActivity implements View.OnClickListene
     }
 
     public void showMainActivity() {
+        finish();
         startActivity(new Intent(user_login.this, MainActivity.class));
     }
 

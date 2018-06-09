@@ -19,4 +19,8 @@
     <string name="dummy_button">Dummy Button</string>
     <string name="dummy_content">DUMMY\nCONTENT</string>
     <string name="selectCat">Wybierz kategorię</string>
+
+    <string name="take_picture">Dodaj zdjęcie</string>
+    <string name="add_desc">(Opcjonalne) Opis zdjęcia</string>
+
 </resources>
