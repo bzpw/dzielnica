@@ -60,6 +60,21 @@ public class MyKmlStyler implements KmlFeature.Styler {
             kmlPlacemark.mStyle = id;
         }
         kmlPoint.applyDefaultStyling(marker, mDefaultStyle, kmlPlacemark, mKmlDocument, map);
+
+//        marker.setInfoWindow(new CustomMarkerInfoWindow(map));
+//        marker.setInfoWindowAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_TOP);
+//
+//        marker.setOnMarkerClickListener(new Marker.OnMarkerClickListener(){
+//
+//            @Override
+//            public boolean onMarkerClick(Marker m, MapView arg1) {
+//                Log.i("Script", "onMarkerClick()");
+//                m.showInfoWindow();
+//                return true;
+//            }
+//
+//        });
+
     }
 
     @Override

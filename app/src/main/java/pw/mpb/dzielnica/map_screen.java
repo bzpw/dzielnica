@@ -25,6 +25,8 @@ import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.Gravity;
@@ -70,6 +72,7 @@ import okhttp3.ResponseBody;
 import pw.mpb.dzielnica.pojo.Category;
 import pw.mpb.dzielnica.pojo.Type;
 import pw.mpb.dzielnica.pojo.Zgloszenie;
+import pw.mpb.dzielnica.utils.AndroidCameraFragment;
 import pw.mpb.dzielnica.utils.ApiUtils;
 import pw.mpb.dzielnica.utils.SessionManager;
 import pw.mpb.dzielnica.utils.Utils;
@@ -362,8 +365,13 @@ public class map_screen extends AppCompatActivity {
         btnCamera.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                finish();
-                startActivity(new Intent(map_screen.this, AndroidCameraApi.class));
+
+                FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+                transaction.replace(R.id.mapContent, new AndroidCameraFragment());
+                transaction.commit();
+
+                //finish();
+                //startActivity(new Intent(map_screen.this, AndroidCameraApi.class));
             }
         });
 

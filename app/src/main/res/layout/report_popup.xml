@@ -2,7 +2,6 @@
 <android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/linearLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:baselineAligned="false">
@@ -97,5 +96,11 @@
         android:text="KAMERA"
         tools:layout_editor_absoluteX="16dp"
         tools:layout_editor_absoluteY="487dp" />
+
+    <FrameLayout
+        android:id="@+id/frameLayout"
+        android:layout_width="250dp"
+        android:layout_height="100dp"
+        android:layout_marginTop="10dp" />
 
 </android.support.constraint.ConstraintLayout>
