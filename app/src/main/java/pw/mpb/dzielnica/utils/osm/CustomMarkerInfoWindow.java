@@ -1,14 +1,21 @@
 package pw.mpb.dzielnica.utils.osm;
 
 import android.content.Context;
+import android.net.Uri;
+import android.util.Log;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import com.squareup.picasso.Callback;
+import com.squareup.picasso.Picasso;
 
 import org.osmdroid.views.MapView;
 import org.osmdroid.views.overlay.Marker;
 import org.osmdroid.views.overlay.infowindow.MarkerInfoWindow;
+import org.w3c.dom.Text;
 
 import pw.mpb.dzielnica.R;
+import pw.mpb.dzielnica.utils.ApiUtils;
 
 /**
  * Created by Mateusz on 10.06.2018.
@@ -16,10 +23,17 @@ import pw.mpb.dzielnica.R;
 
 public class CustomMarkerInfoWindow extends MarkerInfoWindow {
     //private Context context;
+    private String desc;
+    private String type;
+    private String img;
+    private String dzielnica;
 
-    public CustomMarkerInfoWindow(MapView mapView) {
-        super(R.layout.my_bubble, mapView);
-      //  this.context = ctx;
+    CustomMarkerInfoWindow(int layoutResId, MapView mapView, String desc, String type, String img, String dzielnica) {
+        super(layoutResId, mapView);
+        this.desc = desc;
+        this.type = type;
+        this.img = img;
+        this.dzielnica = dzielnica;
     }
 
 
@@ -28,24 +42,46 @@ public class CustomMarkerInfoWindow extends MarkerInfoWindow {
         Marker m = (Marker) item;
 
         ImageView iv = (ImageView) mView.findViewById(R.id.bubble_image);
-        iv.setImageResource(R.drawable.syrenka2);
+
 
         TextView title = (TextView) mView.findViewById(R.id.bubble_title);
-        title.setText(m.getTitle());
+        title.setText(desc);
 
         TextView snippet = (TextView) mView.findViewById(R.id.bubble_description);
-        snippet.setText(m.getSnippet());
+        snippet.setText(type);
 
-				/*Button bt = (Button) mView.findViewById(R.id.bubble_moreinfo);
-				bt.setVisibility(View.VISIBLE);
-				bt.setOnClickListener(new Button.OnClickListener(){
+        TextView subdesc = (TextView) mView.findViewById(R.id.bubble_subdescription);
+        subdesc.setText(dzielnica);
 
-					@Override
-					public void onClick(View v) {
-						Toast.makeText(MainActivity.this, "Button working", Toast.LENGTH_SHORT).show();
-					}
+        if (!img.equals("null")) {
+            Uri uri = Uri.parse(ApiUtils.BASE_URL+img);
 
-				});*/
+            Picasso.with(mView.getContext()).load(uri).noFade().placeholder(R.drawable.placeholder)
+                    .into(iv, new MarkerCallback(m));
+        }
+    }
+
+
+
+    static class MarkerCallback implements Callback {
+        Marker marker=null;
+
+        MarkerCallback(Marker marker) {
+            this.marker=marker;
+        }
+
+        @Override
+        public void onError() {
+            Log.e(getClass().getSimpleName(), "Error loading thumbnail!");
+        }
+
+        @Override
+        public void onSuccess() {
+            if (marker != null && marker.isInfoWindowShown()) {
+                marker.showInfoWindow();
+                marker.setInfoWindowAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_TOP);
+            }
+        }
     }
 }
 

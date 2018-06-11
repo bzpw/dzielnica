@@ -21,7 +21,7 @@ public class ApiUtils {
 
     public static final String TAG = "API";
     //private static final String BASE_URL = "http://192.168.1.104:8000/"; //LOKALNY ADRES - testy
-    private static final String BASE_URL = "http://dzielnica.sytes.net:8000/"; //ADRES SERWERA
+    public static final String BASE_URL = "http://dzielnica.sytes.net:8000/"; //ADRES SERWERA
 
     private ApiUtils() {}
 

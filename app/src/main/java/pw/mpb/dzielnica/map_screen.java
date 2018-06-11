@@ -226,7 +226,7 @@ public class map_screen extends AppCompatActivity {
                 filename = kategoria.getIcon().substring(kategoria.getIcon().lastIndexOf('/') + 1);
 
                 File img = new File(sd.getPath() + File.separator + filename);
-                Bitmap bitmap = Bitmap.createScaledBitmap(BitmapFactory.decodeFile(img.getPath()), 50, 50, false);
+                Bitmap bitmap = Bitmap.createScaledBitmap(BitmapFactory.decodeFile(img.getPath()), 100, 100, false);
                 Style style = new Style(bitmap, 0x901010AA, 5f, 0x20AA1010);
 
                 kmlDocument.putStyle(Integer.toString(kategoria.getId()), style);

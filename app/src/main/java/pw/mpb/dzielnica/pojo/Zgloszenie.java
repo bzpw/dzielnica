@@ -13,6 +13,15 @@ public class Zgloszenie {
     private int user;
     private String desc;
 
+    private String img;
+
+    public String getImg() {
+        return img;
+    }
+
+    public void setImg(String img) {
+        this.img = img;
+    }
 
     public int getType() {
         return type;
