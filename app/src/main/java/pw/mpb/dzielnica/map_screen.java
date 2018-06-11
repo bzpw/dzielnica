@@ -9,6 +9,7 @@ import org.osmdroid.views.MapView;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -154,6 +155,15 @@ public class map_screen extends AppCompatActivity {
                 }
 
 
+            }
+        });
+
+        Button profBtn = (Button) findViewById(R.id.btnProfile);
+        profBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
+                startActivity(new Intent(map_screen.this, profile_screen.class));
             }
         });
 

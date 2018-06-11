@@ -30,4 +30,11 @@
         app:rippleColor="@android:color/transparent"
         app:srcCompat="@drawable/camera_icon"
         tools:scaleType="fitXY" />
+
+    <Button
+        android:id="@+id/btnProfile"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="PROFIL"  />
+
 </android.support.constraint.ConstraintLayout>
