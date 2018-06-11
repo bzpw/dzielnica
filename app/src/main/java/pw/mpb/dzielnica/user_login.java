@@ -64,11 +64,11 @@ public class user_login extends AppCompatActivity implements View.OnClickListene
 
         sp = getSharedPreferences("authentication", MODE_PRIVATE);
 
-        loginBtn = (Button) findViewById(R.id.button);
+        loginBtn = (Button) findViewById(R.id.loginBtn);
         registerBtn = (TextView) findViewById(R.id.registerUserText);
 
-        usernameET = findViewById(R.id.editText);
-        passwordET = findViewById(R.id.editText2);
+        usernameET = findViewById(R.id.loginUsernameTxt);
+        passwordET = findViewById(R.id.loginPasswordTxt);
 
         mWebService = ApiUtils.getAPIService();
 
