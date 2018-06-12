@@ -1,8 +1,8 @@
 package pw.mpb.dzielnica;
 
-import org.json.JSONObject;
 import org.osmdroid.bonuspack.kml.KmlDocument;
 import org.osmdroid.bonuspack.kml.Style;
+import org.osmdroid.events.MapEventsReceiver;
 import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.MapView;
 
@@ -19,18 +19,19 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
 import android.os.Build;
+import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
+import android.support.v4.view.GravityCompat;
+import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.Gravity;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
@@ -39,29 +40,21 @@ import android.widget.EditText;
 import android.widget.PopupWindow;
 import android.util.Log;
 import android.widget.Spinner;
-import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gms.common.api.Api;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 import com.google.gson.Gson;
-import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 
-import org.osmdroid.api.IMapController;
-import org.osmdroid.config.Configuration;
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
-import org.osmdroid.util.GeoPoint;
-import org.osmdroid.views.MapView;
 import org.osmdroid.views.overlay.FolderOverlay;
+import org.osmdroid.views.overlay.MapEventsOverlay;
+import org.osmdroid.views.overlay.infowindow.InfoWindow;
 import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider;
-import org.osmdroid.views.overlay.OverlayItem;
-import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider;
-import org.osmdroid.views.overlay.mylocation.IMyLocationProvider;
 import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay;
 
 import java.io.File;
@@ -72,13 +65,14 @@ import okhttp3.ResponseBody;
 import pw.mpb.dzielnica.pojo.Category;
 import pw.mpb.dzielnica.pojo.Type;
 import pw.mpb.dzielnica.pojo.Zgloszenie;
-import pw.mpb.dzielnica.utils.AndroidCameraFragment;
 import pw.mpb.dzielnica.utils.ApiUtils;
 import pw.mpb.dzielnica.utils.SessionManager;
 import pw.mpb.dzielnica.utils.Utils;
 import pw.mpb.dzielnica.utils.WebService;
 import pw.mpb.dzielnica.utils.osm.JsonGeoPoint;
 import pw.mpb.dzielnica.utils.osm.MyKmlStyler;
+import pw.mpb.dzielnica.utils.osm.RotationGestureDetector;
+import pw.mpb.dzielnica.utils.osm.RotationGestureOverlay;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -86,14 +80,16 @@ import retrofit2.Retrofit;
 
 
 
-public class map_screen extends AppCompatActivity {
+public class map_screen extends AppCompatActivity
+        implements NavigationView.OnNavigationItemSelectedListener, RotationGestureDetector.RotationListener, MapEventsReceiver {
+
 
     JsonGeoPoint currentLocation;
     private static final int REQ_CODE_PERMISSION = 1;
 
     private FusedLocationProviderClient mFusedLocationClient;
     private MyLocationNewOverlay currentLocationOverlay;
-
+    private FolderOverlay geoJsonOverlay;
 
     MapView map = null;
     public FloatingActionButton cameraBtn;
@@ -105,15 +101,52 @@ public class map_screen extends AppCompatActivity {
     // Interfejs API
     private WebService mWebService;
 
+    // Pobieranie (co 10s) zgłoszeń
+    final Handler handler = new Handler();
+    final int delay = 10000; //10s
+    final Runnable runnable = new Runnable() {
+        public void run() {
+            updateZgloszeniaOnMap();
+            Log.d("HANDLER", "t");
+            handler.postDelayed(this, delay);
+        }
+    };
+
     SharedPreferences sp;
     SharedPreferences sp_typy;
     SharedPreferences sp_kategorie;
 
     @SuppressLint("MissingPermission")
     @Override
-    public void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_map_screen);
+        setContentView(R.layout.activity_nav_drawer);
+
+        // Obsługa menu rozwijanego z lewej
+//        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+//        fab.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+//                        .setAction("Action", null).show();
+//            }
+//        });
+
+
+        final DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+
+
+        FloatingActionButton btnOpenMenu = (FloatingActionButton) findViewById(R.id.btnMenu);
+        btnOpenMenu.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                drawer.openDrawer(Gravity.LEFT);
+            }
+        });
+
+        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView.setNavigationItemSelectedListener(this);
+
 
         // Sprawdzenie zezwoleń - lokalizacja
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -132,56 +165,53 @@ public class map_screen extends AppCompatActivity {
 
         mWebService = ApiUtils.getAPIService();
 
-        cameraBtn = (FloatingActionButton) findViewById(R.id.cameraBtn);
+        //cameraBtn = (FloatingActionButton) findViewById(R.id.cameraBtn);
 
 
         GeoPoint center = new GeoPoint(52.220428, 21.010725);
 
+
+
         map = (MapView) findViewById(R.id.map);
         map.setTileSource(TileSourceFactory.MAPNIK);
-        map.setBuiltInZoomControls(true);
+        map.setBuiltInZoomControls(false);
         map.setMultiTouchControls(true);
-        map.getController().setZoom(15.0);
+        map.getOverlays().add(new RotationGestureOverlay(this, this));
+        map.getController().setZoom(19.0);
+        map.setMinZoomLevel(15.0);
         map.getController().setCenter(center);
+        MapEventsOverlay mapEventsOverlay = new MapEventsOverlay(this, this);
+        map.getOverlays().add(0, mapEventsOverlay);
 
 
-        //GeoJSONParse("{\"type\":\"FeatureCollection\",\"features\":[{\"id\":1,\"type\":\"Feature\",\"geometry\":{\"type\":\"Point\",\"coordinates\":[20.945648734753988,52.26411927892249]},\"properties\":{\"img\":null,\"type\":1}},{\"id\":2,\"type\":\"Feature\",\"geometry\":{\"type\":\"Point\",\"coordinates\":[20.992941444098115,52.2530865417704]},\"properties\":{\"img\":null,\"type\":1}},{\"id\":3,\"type\":\"Feature\",\"geometry\":{\"type\":\"Point\",\"coordinates\":[21.010725,52.220428]},\"properties\":{\"img\":\"Schopenhauer_wN6nkI5.jpg\",\"type\":1}},{\"id\":4,\"type\":\"Feature\",\"geometry\":{\"type\":\"Point\",\"coordinates\":[21.0096950317385,52.225990832712824]},\"properties\":{\"img\":\"media/images/typy/4.jpg\",\"type\":1}}]}");
-
-        cameraBtn.setOnClickListener(new View.OnClickListener() {
+        FloatingActionButton btnCenter = (FloatingActionButton) findViewById(R.id.btnCenterLocation);
+        btnCenter.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Log.d("ONClICK", "costam");
-                try {
-                    ShowPopupWindow();
-                } catch (IOException e) {
-                    e.printStackTrace();
+                if (null != currentLocation) {
+                    GeoPoint myPosition = new GeoPoint(currentLocation.getLatitude(), currentLocation.getLongitude());
+                    map.getController().animateTo(myPosition);
+                } else {
+                    Toast.makeText(map_screen.this, "Nie wykryto pozycji użytkownika... Upewnij się, że lokalizacja działa poprawnie.", Toast.LENGTH_LONG).show();
+
                 }
-
-
             }
         });
-
-        Button profBtn = (Button) findViewById(R.id.btnProfile);
-        profBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                finish();
-                startActivity(new Intent(map_screen.this, profile_screen.class));
-            }
-        });
-
+        updateZgloszeniaOnMap();
+        centerToLocation();
     }
 
     public void onResume() {
         super.onResume();
         map.onResume();
-
+        ApiUtils.onUnLoggedRedirect(sp, map_screen.this, UserLogin.class);
         createLocationRequest();
-        refreshtypy();
-
+        handler.removeCallbacks(runnable);
+        handler.postDelayed(runnable, delay);
+        centerToLocation();
     }
 
-    private void refreshtypy() {
+    private void updateZgloszeniaOnMap() {
         mWebService.listZgloszenia("JWT " + SessionManager.getToken(sp)).enqueue(new Callback<ResponseBody>() {
             @Override
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
@@ -197,7 +227,6 @@ public class map_screen extends AppCompatActivity {
                     }
 
                 } else {
-                    Log.w("json", call.request().header("Authorization"));
                     Log.w("json", response.toString());
 
                 }
@@ -213,6 +242,8 @@ public class map_screen extends AppCompatActivity {
     public void onPause() {
         super.onPause();
         map.onPause();
+        updateZgloszeniaOnMap();
+        handler.removeCallbacks(runnable);
     }
 
     public void GeoJSONParse(String geoJSON) {
@@ -228,10 +259,9 @@ public class map_screen extends AppCompatActivity {
 
         // Styler do zmiany ikonek w zależności od kategorii
         MyKmlStyler styler = new MyKmlStyler(map, mdefaultStyle, kmlDocument);
-        FolderOverlay geoJsonOverlay = (FolderOverlay) kmlDocument.mKmlRoot.buildOverlay(map, null, styler, kmlDocument);
+        geoJsonOverlay = (FolderOverlay) kmlDocument.mKmlRoot.buildOverlay(map, null, styler, kmlDocument);
 
-
-        map.getOverlays().add(geoJsonOverlay);
+        map.getOverlays().add(1, geoJsonOverlay);
         map.invalidate();
     }
 
@@ -251,7 +281,7 @@ public class map_screen extends AppCompatActivity {
                 filename = kategoria.getIcon().substring(kategoria.getIcon().lastIndexOf('/') + 1);
 
                 File img = new File(sd.getPath() + File.separator + filename);
-                Bitmap bitmap = Bitmap.createScaledBitmap(BitmapFactory.decodeFile(img.getPath()), 100, 100, false);
+                Bitmap bitmap = Bitmap.createScaledBitmap(BitmapFactory.decodeFile(img.getPath()), 200, 200, false);
                 Style style = new Style(bitmap, 0x901010AA, 5f, 0x20AA1010);
 
                 kmlDocument.putStyle(Integer.toString(kategoria.getId()), style);
@@ -323,6 +353,7 @@ public class map_screen extends AppCompatActivity {
                 Context context = this.getApplicationContext();
                 currentLocationOverlay = new MyLocationNewOverlay(new GpsMyLocationProvider(context), map);
                 currentLocationOverlay.enableMyLocation();
+
                 Log.d("GEO", currentLocationOverlay.toString());
                 map.getOverlays().add(currentLocationOverlay);
 
@@ -374,18 +405,18 @@ public class map_screen extends AppCompatActivity {
             }
         });
 
-        btnCamera.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-                transaction.replace(R.id.mapContent, new AndroidCameraFragment());
-                transaction.commit();
-
-                //finish();
-                //startActivity(new Intent(map_screen.this, AndroidCameraApi.class));
-            }
-        });
+//        btnCamera.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//
+//                FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+//                transaction.replace(R.id.mapContent, new AndroidCameraFragment());
+//                transaction.commit();
+//
+//                //finish();
+//                //startActivity(new Intent(map_screen.this, AndroidCameraApi.class));
+//            }
+//        });
 
         window.setBackgroundDrawable(new ColorDrawable(Color.WHITE));
         window.setOutsideTouchable(false);
@@ -428,5 +459,79 @@ public class map_screen extends AppCompatActivity {
                 ApiUtils.logFailure(t);
             }
         });
+    }
+
+    // Obsługa menu
+    @Override
+    public void onBackPressed() {
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        if (drawer.isDrawerOpen(GravityCompat.START)) {
+            drawer.closeDrawer(GravityCompat.START);
+        } else {
+            super.onBackPressed();
+        }
+    }
+
+    @SuppressWarnings("StatementWithEmptyBody")
+    @Override
+    public boolean onNavigationItemSelected(MenuItem item) {
+        // Handle navigation view item clicks here.
+        int id = item.getItemId();
+
+        if (id == R.id.nav_addReport) {
+            try {
+                ShowPopupWindow();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } else if (id == R.id.nav_myProfile) {
+
+           // finish();
+            startActivity(new Intent(map_screen.this, ProfileScreen.class));
+
+        } else if (id == R.id.nav_myReports) {
+
+        } else if (id == R.id.nav_options) {
+
+        } else if (id == R.id.nav_logout) {
+            SessionManager.removeToken(sp);
+            ApiUtils.onUnLoggedRedirect(sp, map_screen.this, UserLogin.class);
+        }
+
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        drawer.closeDrawer(GravityCompat.START);
+        return true;
+    }
+
+    // Obsługa kliknięć na mapie
+    @Override public boolean singleTapConfirmedHelper(GeoPoint p) {
+        InfoWindow.closeAllInfoWindowsOn(map);
+        for (InfoWindow infoWindow:
+        InfoWindow.getOpenedInfoWindowsOn(map)) {
+
+            Log.d("INFOWINDOW", infoWindow.toString());
+
+        }
+        Log.d("INFOWINDOW", "normal click");
+        return true;
+    }
+
+    @Override
+    public boolean longPressHelper(GeoPoint p) {
+        return false;
+    }
+
+    @Override
+    public void onRotate(float deltaAngle) {
+        Log.d("OSM", "rotate: " + deltaAngle);
+        //map.setMapOrientation(map.getMapOrientation()+deltaAngle);
+    }
+
+
+    private void centerToLocation() {
+        if (null != currentLocation) {
+            GeoPoint center = new GeoPoint(currentLocation.getLatitude(), currentLocation.getLongitude());
+            map.getController().setCenter(center);
+        }
     }
 }

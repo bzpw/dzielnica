@@ -24,23 +24,18 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity android:name=".MainActivity">
-
-        </activity>
-        <activity android:name=".user_login" />
-        <activity android:name=".map_screen" />
-        <activity android:name=".AndroidCameraApi" />
-        <activity
-            android:name=".NavDrawer"
-            android:label="@string/title_activity_nav_drawer"
-            android:theme="@style/Theme.Design.NoActionBar">
-
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-
         </activity>
+        <activity android:name=".UserLogin" />
+        <activity android:name=".map_screen"
+            android:theme="@style/Theme.Design.NoActionBar"/>
+        <activity android:name=".AndroidCameraApi" />
+        <activity android:name=".ProfileScreen" />
+
     </application>
 
 </manifest>

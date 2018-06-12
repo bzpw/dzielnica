@@ -6,15 +6,18 @@
     <group android:checkableBehavior="single">
         <item
             android:id="@+id/nav_addReport"
+            android:checkable="false"
             android:icon="@drawable/ic_menu_camera"
             android:title="Dodaj zgłoszenie" />
         <item
             android:id="@+id/nav_myReports"
+            android:checkable="false"
             android:enabled="false"
             android:icon="@drawable/ic_menu_gallery"
             android:title="Moje zgłoszenia" />
         <item
             android:id="@+id/nav_myProfile"
+            android:checkable="false"
             android:icon="@drawable/ic_account_circle_black"
             android:title="Profil" />
     </group>
@@ -23,9 +26,15 @@
         <menu>
             <item
                 android:id="@+id/nav_options"
+                android:checkable="false"
                 android:enabled="false"
                 android:icon="@drawable/ic_menu_manage"
                 android:title="Opcje" />
+            <item
+                android:id="@+id/nav_logout"
+                android:checkable="false"
+                android:icon="@android:drawable/ic_lock_power_off"
+                android:title="Wyloguj" />
         </menu>
     </item>
 

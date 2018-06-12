@@ -6,9 +6,7 @@ import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.text.Editable;
 import android.text.TextUtils;
-import android.text.TextWatcher;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -38,7 +36,7 @@ import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 
-public class user_login extends AppCompatActivity implements View.OnClickListener {
+public class UserLogin extends AppCompatActivity implements View.OnClickListener {
 
     String result = "";
     private String TAG = "ODPOWIEDZSERWERA";
@@ -87,7 +85,7 @@ public class user_login extends AppCompatActivity implements View.OnClickListene
                                     String token = response.body().getToken();
                                     ApiUtils.logResponse(token);
                                     SessionManager.saveToken(sp, token); // Zapisanie tokena do SharedPref
-                                    ApiUtils.showMainActivity(user_login.this); // Przeniesienie do MainActivity
+                                    ApiUtils.showMainActivity(UserLogin.this); // Przeniesienie do MainActivity
                                 }
                             } else{
                                 try {
@@ -109,7 +107,7 @@ public class user_login extends AppCompatActivity implements View.OnClickListene
 
                     });
                 } else {
-                    Toast.makeText(user_login.this, "Musisz wypełnić wszystkie pola!", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(UserLogin.this, "Musisz wypełnić wszystkie pola!", Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -124,7 +122,7 @@ public class user_login extends AppCompatActivity implements View.OnClickListene
     }
 
     private void ShowPopupWindow(){
-        LayoutInflater inflater = (LayoutInflater) user_login.this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        LayoutInflater inflater = (LayoutInflater) UserLogin.this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View layout = inflater.inflate(R.layout.register_popup, null);
         window = new PopupWindow(layout, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT, true);
 
@@ -162,7 +160,7 @@ public class user_login extends AppCompatActivity implements View.OnClickListene
                 if(!TextUtils.isEmpty(username) && !TextUtils.isEmpty(password) && !TextUtils.isEmpty(password2)) {
 
                     if (!password.equals(password2)) {
-                        Toast.makeText(user_login.this, "Podane hasła się różnią!", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(UserLogin.this, "Podane hasła się różnią!", Toast.LENGTH_SHORT).show();
                     } else {
                         mWebService.registerUser(username, password, email).enqueue(new Callback<User>() {
 
@@ -172,7 +170,7 @@ public class user_login extends AppCompatActivity implements View.OnClickListene
                                     ApiUtils.logResponse(response.body().toString());
                                     Log.d(TAG, "post submitted to API." + response.body().toString());
 
-                                    Toast.makeText(user_login.this, "Zostałeś zarejestrowany pomyślnie! Możesz się teraz zalogować", Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(UserLogin.this, "Zostałeś zarejestrowany pomyślnie! Możesz się teraz zalogować", Toast.LENGTH_SHORT).show();
                                     window.dismiss();
 
                                 } else {
@@ -188,7 +186,7 @@ public class user_login extends AppCompatActivity implements View.OnClickListene
                         });
                     }
                 } else {
-                    Toast.makeText(user_login.this, "Musisz wypełnić wszystkie pola!", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(UserLogin.this, "Musisz wypełnić wszystkie pola!", Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -197,7 +195,7 @@ public class user_login extends AppCompatActivity implements View.OnClickListene
     @Override
     public void onResume() {
         super.onResume();
-        ApiUtils.onLoggedRedirect(sp, user_login.this, MainActivity.class);
+        ApiUtils.onLoggedRedirect(sp, UserLogin.this, MainActivity.class);
     }
 
     @Override

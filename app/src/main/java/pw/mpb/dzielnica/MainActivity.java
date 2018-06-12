@@ -1,10 +1,8 @@
 package pw.mpb.dzielnica;
 
-import android.app.Activity;
 import android.content.Context;
 import android.app.ProgressDialog;
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 import android.content.SharedPreferences;
 import android.support.v7.app.AppCompatActivity;
@@ -14,34 +12,23 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
-import com.google.android.gms.common.api.Api;
 import com.google.gson.Gson;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.FilenameFilter;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import okhttp3.OkHttpClient;
 import okhttp3.ResponseBody;
-import okhttp3.logging.HttpLoggingInterceptor;
 import pw.mpb.dzielnica.pojo.Category;
 import pw.mpb.dzielnica.pojo.Type;
 import pw.mpb.dzielnica.utils.ApiUtils;
-import pw.mpb.dzielnica.utils.RetrofitClient;
 import pw.mpb.dzielnica.utils.SessionManager;
 import pw.mpb.dzielnica.utils.WebService;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
 
-import org.json.JSONObject;
 import org.osmdroid.config.Configuration;
 
 public class MainActivity extends AppCompatActivity {
@@ -100,7 +87,7 @@ public class MainActivity extends AppCompatActivity {
         yourButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 finish();
-                startActivity(new Intent(MainActivity.this, user_login.class));
+                startActivity(new Intent(MainActivity.this, UserLogin.class));
             }
         });
 

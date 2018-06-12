@@ -3,7 +3,7 @@ package pw.mpb.dzielnica;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
-public class profile_screen extends AppCompatActivity {
+public class ProfileScreen extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

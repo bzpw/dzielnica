@@ -10,6 +10,7 @@ import com.squareup.picasso.Picasso;
 
 import org.osmdroid.views.MapView;
 import org.osmdroid.views.overlay.Marker;
+import org.osmdroid.views.overlay.infowindow.InfoWindow;
 import org.osmdroid.views.overlay.infowindow.MarkerInfoWindow;
 
 import pw.mpb.dzielnica.R;
@@ -25,6 +26,7 @@ public class CustomMarkerInfoWindow extends MarkerInfoWindow {
     private String type;
     private String img;
     private String dzielnica;
+    private MapView map;
 
     CustomMarkerInfoWindow(int layoutResId, MapView mapView, String desc, String type, String img, String dzielnica) {
         super(layoutResId, mapView);
@@ -37,6 +39,8 @@ public class CustomMarkerInfoWindow extends MarkerInfoWindow {
 
     @Override
     public void onOpen(Object item){
+        InfoWindow.closeAllInfoWindowsOn(mMapView);
+
         Marker m = (Marker) item;
 
         ImageView iv = (ImageView) mView.findViewById(R.id.bubble_image);
