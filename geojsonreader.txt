@@ -1,0 +1,10 @@
+    public void GeoJSONParse(String geoJSON){
+        KmlDocument kmlDocument = new KmlDocument();
+        kmlDocument.parseGeoJSON(geoJSON);
+        Drawable defaultMarker = getResources().getDrawable(R.drawable.marker_default);
+        Bitmap defaultBitmap = ((BitmapDrawable) defaultMarker).getBitmap();
+        Style defaultStyle = new Style(defaultBitmap, 0x901010AA, 5f, 0x20AA1010);
+        FolderOverlay geoJsonOverlay = (FolderOverlay) kmlDocument.mKmlRoot.buildOverlay(map, defaultStyle, null, kmlDocument);
+        map.getOverlays().add(geoJsonOverlay);
+        map.invalidate();
+    }
