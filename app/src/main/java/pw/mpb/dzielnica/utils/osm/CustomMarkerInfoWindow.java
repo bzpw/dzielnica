@@ -1,6 +1,5 @@
 package pw.mpb.dzielnica.utils.osm;
 
-import android.content.Context;
 import android.net.Uri;
 import android.util.Log;
 import android.widget.ImageView;
@@ -12,13 +11,12 @@ import com.squareup.picasso.Picasso;
 import org.osmdroid.views.MapView;
 import org.osmdroid.views.overlay.Marker;
 import org.osmdroid.views.overlay.infowindow.MarkerInfoWindow;
-import org.w3c.dom.Text;
 
 import pw.mpb.dzielnica.R;
 import pw.mpb.dzielnica.utils.ApiUtils;
 
 /**
- * Created by Mateusz on 10.06.2018.
+ * Custom bubble marker info (after clicking marker)
  */
 
 public class CustomMarkerInfoWindow extends MarkerInfoWindow {
@@ -53,9 +51,9 @@ public class CustomMarkerInfoWindow extends MarkerInfoWindow {
         TextView subdesc = (TextView) mView.findViewById(R.id.bubble_subdescription);
         subdesc.setText(dzielnica);
 
-        if (!img.equals("null")) {
-            Uri uri = Uri.parse(ApiUtils.BASE_URL+img);
-
+        if (!this.img.equals("null")) {
+            Uri uri = Uri.parse(ApiUtils.BASE_URL+this.img);
+            Log.d("IMG", "Uri: "+ApiUtils.BASE_URL+this.img);
             Picasso.with(mView.getContext()).load(uri).noFade().placeholder(R.drawable.placeholder)
                     .into(iv, new MarkerCallback(m));
         }

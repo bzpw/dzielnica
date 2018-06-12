@@ -1,13 +1,14 @@
 package pw.mpb.dzielnica;
 
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.Editable;
 import android.text.TextUtils;
+import android.text.TextWatcher;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -23,8 +24,8 @@ import android.util.Log;
 import android.widget.Toast;
 
 // Retrofit
-import org.json.JSONException;
-import org.json.JSONObject;
+
+import java.io.IOException;
 
 import pw.mpb.dzielnica.pojo.User;
 import pw.mpb.dzielnica.pojo.Token;
@@ -64,11 +65,11 @@ public class user_login extends AppCompatActivity implements View.OnClickListene
 
         sp = getSharedPreferences("authentication", MODE_PRIVATE);
 
-        loginBtn = (Button) findViewById(R.id.button);
+        loginBtn = (Button) findViewById(R.id.loginLoginBtn);
         registerBtn = (TextView) findViewById(R.id.registerUserText);
 
-        usernameET = findViewById(R.id.editText);
-        passwordET = findViewById(R.id.editText2);
+        usernameET = findViewById(R.id.loginUsernameEdtTxt);
+        passwordET = findViewById(R.id.loginPasswordEdtTxt);
 
         mWebService = ApiUtils.getAPIService();
 
@@ -86,12 +87,17 @@ public class user_login extends AppCompatActivity implements View.OnClickListene
                                     String token = response.body().getToken();
                                     ApiUtils.logResponse(token);
                                     SessionManager.saveToken(sp, token); // Zapisanie tokena do SharedPref
-                                    Toast.makeText(user_login.this, SessionManager.getToken(sp), Toast.LENGTH_SHORT).show();
-
-                                    showMainActivity(); // Przeniesienie do MainActivity
+                                    ApiUtils.showMainActivity(user_login.this); // Przeniesienie do MainActivity
                                 }
                             } else{
-                                ApiUtils.logResponse("NIESUKCESFUL");
+                                try {
+                                    int code = response.code();
+                                    String err = response.errorBody().string();
+                                    ApiUtils.logResponse(err);
+                                    ApiUtils.showErrToast(getApplicationContext(), code, err);
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
                             }
                         }
 
@@ -102,6 +108,8 @@ public class user_login extends AppCompatActivity implements View.OnClickListene
                         }
 
                     });
+                } else {
+                    Toast.makeText(user_login.this, "Musisz wypełnić wszystkie pola!", Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -122,15 +130,23 @@ public class user_login extends AppCompatActivity implements View.OnClickListene
 
         //mWebService = ApiUtils.getAPIService();
 
-        final EditText usernameTextView = (EditText)layout.findViewById(R.id.editText3);
-        final EditText passwordTextView = ((EditText)layout.findViewById(R.id.editText4));
-        final EditText emailTextView =(EditText)layout.findViewById(R.id.editText3);
-        final EditText fnTextView = (EditText)layout.findViewById(R.id.editText3);
-        final EditText lnTextView = (EditText)layout.findViewById(R.id.editText3);
+        final EditText usernameTextView = (EditText)layout.findViewById(R.id.registerLoginEdtTxt);
+        final EditText passwordTextView = ((EditText)layout.findViewById(R.id.registerPasswordEdtTxt));
+        final EditText password2TextView = ((EditText)layout.findViewById(R.id.registerPassword2EdtTxt));
+        final EditText emailTextView =(EditText)layout.findViewById(R.id.registerEmailEdtTxt);
+        final Button btnCloseRegister =(Button)layout.findViewById(R.id.registerBackBtn);
+
 
         window.setBackgroundDrawable(new ColorDrawable(Color.WHITE));
         window.setOutsideTouchable(false);
         window.showAtLocation(layout, Gravity.CENTER, 40, 60);
+
+        btnCloseRegister.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                window.dismiss();
+            }
+        });
 
         // Nacisniety przycisk "ZALOZ KONTO"
         closeRegBtn = (Button) layout.findViewById(R.id.button3);
@@ -138,36 +154,41 @@ public class user_login extends AppCompatActivity implements View.OnClickListene
             @Override
             public void onClick(View v) {
 
-                //TODO: pozmieniac tak zeby pasowalo
                 String username = usernameTextView.getText().toString().trim();
                 String password = passwordTextView.getText().toString().trim();
+                String password2 = password2TextView.getText().toString().trim();
                 String email = emailTextView.getText().toString().trim();
-                String first_name = fnTextView.getText().toString().trim();
-                String last_name = lnTextView.getText().toString().trim();
 
-                if(!TextUtils.isEmpty(username) && !TextUtils.isEmpty(password)) {
-                    mWebService.registerUser(username, password, email, first_name, last_name).enqueue(new Callback<User>() {
+                if(!TextUtils.isEmpty(username) && !TextUtils.isEmpty(password) && !TextUtils.isEmpty(password2)) {
 
-                        @Override
-                        public void onResponse(Call<User> call, Response<User> response) {
-                            if(response.isSuccessful()) {
-                                ApiUtils.logResponse(response.body().toString());
-                                Log.d(TAG, "post submitted to API." + response.body().toString());
+                    if (!password.equals(password2)) {
+                        Toast.makeText(user_login.this, "Podane hasła się różnią!", Toast.LENGTH_SHORT).show();
+                    } else {
+                        mWebService.registerUser(username, password, email).enqueue(new Callback<User>() {
 
-                                Toast.makeText(user_login.this, "Zostałeś zarejestrowany pomyślnie!", Toast.LENGTH_SHORT).show();
-                                window.dismiss();
+                            @Override
+                            public void onResponse(Call<User> call, Response<User> response) {
+                                if (response.isSuccessful()) {
+                                    ApiUtils.logResponse(response.body().toString());
+                                    Log.d(TAG, "post submitted to API." + response.body().toString());
 
-                            } else {
-                                ApiUtils.logResponse(response.toString());
+                                    Toast.makeText(user_login.this, "Zostałeś zarejestrowany pomyślnie! Możesz się teraz zalogować", Toast.LENGTH_SHORT).show();
+                                    window.dismiss();
 
+                                } else {
+                                    ApiUtils.logResponse(response.toString());
+
+                                }
                             }
-                        }
 
-                        @Override
-                        public void onFailure(Call<User> call, Throwable t) {
-                            ApiUtils.logFailure(t);
-                        }
-                    });
+                            @Override
+                            public void onFailure(Call<User> call, Throwable t) {
+                                ApiUtils.logFailure(t);
+                            }
+                        });
+                    }
+                } else {
+                    Toast.makeText(user_login.this, "Musisz wypełnić wszystkie pola!", Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -176,26 +197,7 @@ public class user_login extends AppCompatActivity implements View.OnClickListene
     @Override
     public void onResume() {
         super.onResume();
-
-        // Jeśli użytkownik zalogowany, przekieruj go do MainActivity
-        mWebService.checkIsLogged(SessionManager.getToken(sp)).enqueue(new Callback<JSONObject>() {
-            @Override
-            public void onResponse(Call<JSONObject> call, Response<JSONObject> response) {
-                ApiUtils.logResponse(response.toString());
-                if(response.code() == 200)
-                    showMainActivity();
-            }
-
-            @Override
-            public void onFailure(Call<JSONObject> call, Throwable t) {
-                ApiUtils.logFailure(t);
-            }
-        });
-    }
-
-    public void showMainActivity() {
-        finish();
-        startActivity(new Intent(user_login.this, MainActivity.class));
+        ApiUtils.onLoggedRedirect(sp, user_login.this, MainActivity.class);
     }
 
     @Override

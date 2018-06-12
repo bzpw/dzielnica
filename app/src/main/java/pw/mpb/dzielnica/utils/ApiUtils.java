@@ -2,8 +2,12 @@ package pw.mpb.dzielnica.utils;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.util.Log;
 import android.widget.Toast;
+
+import org.json.JSONObject;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -12,6 +16,10 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 import okhttp3.ResponseBody;
+import pw.mpb.dzielnica.MainActivity;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 /**
  *
@@ -21,7 +29,7 @@ public class ApiUtils {
 
     public static final String TAG = "API";
     //private static final String BASE_URL = "http://192.168.1.104:8000/"; //LOKALNY ADRES - testy
-    public static final String BASE_URL = "http://dzielnica.sytes.net:8000/"; //ADRES SERWERA
+    public static final String BASE_URL = "http://dzielnica.sytes.net:8000"; //ADRES SERWERA
 
     private ApiUtils() {}
 
@@ -103,6 +111,50 @@ public class ApiUtils {
         } catch (IOException e) {
             return false;
         }
+    }
+
+
+    public static void onLoggedRedirect(final SharedPreferences sp, final Context from, final Class<?> to) {
+        // Jeśli użytkownik zalogowany, przekieruj go do  wskazanego Activity
+        ApiUtils.getAPIService().checkIsLogged(SessionManager.getToken(sp)).enqueue(new Callback<JSONObject>() {
+            @Override
+            public void onResponse(Call<JSONObject> call, Response<JSONObject> response) {
+                ApiUtils.logResponse(response.toString());
+                if(response.code() == 200) {
+                    ((Activity)from).finish();
+                    from.startActivity(new Intent(from, to));
+                }
+            }
+
+            @Override
+            public void onFailure(Call<JSONObject> call, Throwable t) {
+                ApiUtils.logFailure(t);
+            }
+        });
+    }
+
+    public static void onUnLoggedRedirect(final SharedPreferences sp, final Context from, final Class<?> to) {
+        // Jeśli użytkownik nie jest zalogowany, przekieruj go do wskazanego activity
+        ApiUtils.getAPIService().checkIsLogged(SessionManager.getToken(sp)).enqueue(new Callback<JSONObject>() {
+            @Override
+            public void onResponse(Call<JSONObject> call, Response<JSONObject> response) {
+                ApiUtils.logResponse(response.toString());
+                if(response.code() != 200) {
+                    ((Activity)from).finish();
+                    from.startActivity(new Intent(from, to));
+                }
+            }
+
+            @Override
+            public void onFailure(Call<JSONObject> call, Throwable t) {
+                ApiUtils.logFailure(t);
+            }
+        });
+    }
+
+    public static void showMainActivity(final Context from) {
+        ((Activity)from).finish();
+        from.startActivity(new Intent(from, MainActivity.class));
     }
 
 }

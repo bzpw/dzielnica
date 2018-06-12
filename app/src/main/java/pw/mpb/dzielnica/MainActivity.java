@@ -1,5 +1,6 @@
 package pw.mpb.dzielnica;
 
+import android.app.Activity;
 import android.content.Context;
 import android.app.ProgressDialog;
 import android.content.Intent;
@@ -40,6 +41,7 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
+import org.json.JSONObject;
 import org.osmdroid.config.Configuration;
 
 public class MainActivity extends AppCompatActivity {

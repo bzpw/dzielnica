@@ -30,17 +30,14 @@ import retrofit2.http.Url;
  */
 
 public interface WebService {
-    @GET("/api/dzielnice/list/") // deklarujemy endpoint oraz metodę
-        //void getData(Callback<Zgloszenie> pResponse);
+    @GET("/api/dzielnice/list/") // deklarujemy oraz endpoint
     Call<List<Dzielnica>> getData();
 
     @POST("/api/user/register/") // deklarujemy endpoint, metodę oraz dane do wysłania
     @FormUrlEncoded
     Call<User> registerUser(@Field("username") String username,
                             @Field("password") String password,
-                            @Field("email") String email,
-                            @Field("first_name") String first_name,
-                            @Field("first_name") String last_name);
+                            @Field("email") String email);
 
     @POST("/api/user/login/")
     @FormUrlEncoded
