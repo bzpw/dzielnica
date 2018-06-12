@@ -161,6 +161,15 @@ public class map_screen extends AppCompatActivity {
             }
         });
 
+        Button profBtn = (Button) findViewById(R.id.btnProfile);
+        profBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
+                startActivity(new Intent(map_screen.this, profile_screen.class));
+            }
+        });
+
     }
 
     public void onResume() {
@@ -210,29 +219,7 @@ public class map_screen extends AppCompatActivity {
         KmlDocument kmlDocument = new KmlDocument();
         kmlDocument.parseGeoJSON(geoJSON);
 
-        // ścieżka do pamięci telefonu
-        File sd = getExternalFilesDir(null);
-
-        // Dodawanie styli na podstawie pobranych wcześniej
-        Gson gson = new Gson();
-        String json_kategorie = sp_kategorie.getString("Kategorie", null);
-        java.lang.reflect.Type type = new TypeToken<List<Category>>(){}.getType();
-        List<Category> cats = gson.fromJson(json_kategorie, type);
-
-        for (Category kategoria : cats) {
-            // TODO: wywalić to gdzieś indziej
-            String filename = "";
-            if(kategoria.getIcon() != null) {
-                filename = kategoria.getIcon().substring(kategoria.getIcon().lastIndexOf('/') + 1);
-
-                File img = new File(sd.getPath() + File.separator + filename);
-                Bitmap bitmap = Bitmap.createScaledBitmap(BitmapFactory.decodeFile(img.getPath()), 100, 100, false);
-                Style style = new Style(bitmap, 0x901010AA, 5f, 0x20AA1010);
-
-                kmlDocument.putStyle(Integer.toString(kategoria.getId()), style);
-            }
-
-        }
+        addCatsStyles(kmlDocument);
 
         // Domyślny marker jeśli nie ma ikonki
         Drawable defaultMarker = getResources().getDrawable(R.drawable.marker_default);
@@ -246,6 +233,31 @@ public class map_screen extends AppCompatActivity {
 
         map.getOverlays().add(geoJsonOverlay);
         map.invalidate();
+    }
+
+    // Dodawanie styli na podstawie pobranych wcześniej ikonek kategorii
+    private void addCatsStyles(KmlDocument kmlDocument) {
+        Gson gson = new Gson();
+        String json_kategorie = sp_kategorie.getString("Kategorie", null);
+        java.lang.reflect.Type type = new TypeToken<List<Category>>(){}.getType();
+        List<Category> cats = gson.fromJson(json_kategorie, type);
+
+        // ścieżka do pamięci telefonu
+        File sd = getExternalFilesDir(null);
+
+        for (Category kategoria : cats) {
+            String filename = "";
+            if(kategoria.getIcon() != null) {
+                filename = kategoria.getIcon().substring(kategoria.getIcon().lastIndexOf('/') + 1);
+
+                File img = new File(sd.getPath() + File.separator + filename);
+                Bitmap bitmap = Bitmap.createScaledBitmap(BitmapFactory.decodeFile(img.getPath()), 100, 100, false);
+                Style style = new Style(bitmap, 0x901010AA, 5f, 0x20AA1010);
+
+                kmlDocument.putStyle(Integer.toString(kategoria.getId()), style);
+            }
+
+        }
     }
 
 
@@ -407,7 +419,6 @@ public class map_screen extends AppCompatActivity {
                     }
                     ApiUtils.logResponse(response.errorBody().toString());
                 }
-                Toast.makeText(map_screen.this, "Dodano zgłoszenie!", Toast.LENGTH_SHORT).show();
 
                 window.dismiss();
             }
