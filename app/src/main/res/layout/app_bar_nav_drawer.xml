@@ -13,6 +13,14 @@
         android:text="MENU" />
 
     <include
+        android:id="@+id/include"
+        layout="@layout/activity_map_screen"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        tools:layout_editor_absoluteY="0dp" />
+
+    <include
+        android:id="@+id/include"
         layout="@layout/content_nav_drawer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -25,5 +33,16 @@
         android:layout_gravity="bottom|end"
         android:layout_margin="@dimen/fab_margin"
         app:srcCompat="@android:drawable/ic_dialog_email" />
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/fab2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="@dimen/fab_margin"
+        app:backgroundTint="@color/colorPrimary"
+        app:layout_anchor="@+id/include"
+        app:layout_anchorGravity="right|top"
+        app:srcCompat="@android:drawable/ic_menu_mylocation" />
 
 </android.support.design.widget.CoordinatorLayout>
