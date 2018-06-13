@@ -135,13 +135,18 @@ public class ApiUtils {
 
     public static void onUnLoggedRedirect(final SharedPreferences sp, final Context from, final Class<?> to) {
         // Jeśli użytkownik nie jest zalogowany, przekieruj go do wskazanego activity
+        if(null == SessionManager.getToken(sp)) {
+            Toast.makeText(from, "Zaloguj się, by otrzymać dostęp do tej funkcji", Toast.LENGTH_SHORT).show();
+            redirect(from, to);
+            return;
+        }
         ApiUtils.getAPIService().checkIsLogged(SessionManager.getToken(sp)).enqueue(new Callback<JSONObject>() {
             @Override
             public void onResponse(Call<JSONObject> call, Response<JSONObject> response) {
                 ApiUtils.logResponse(response.toString());
                 if(response.code() != 200) {
-                    ((Activity)from).finish();
-                    from.startActivity(new Intent(from, to));
+                    redirect(from, to);
+                    Toast.makeText(from, "Twoje ostatnie zalogowanie przedawniło się! Zaloguj się ponownie.", Toast.LENGTH_SHORT).show();
                 }
             }
 
@@ -150,6 +155,11 @@ public class ApiUtils {
                 ApiUtils.logFailure(t);
             }
         });
+    }
+
+    private static void redirect(final Context from, final Class<?> to) {
+        ((Activity)from).finish();
+        from.startActivity(new Intent(from, to));
     }
 
     public static void showMainActivity(final Context from) {

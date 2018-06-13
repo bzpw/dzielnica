@@ -34,6 +34,7 @@ import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
@@ -257,13 +258,18 @@ public class map_screen extends AppCompatActivity
         Bitmap defaultBitmap = ((BitmapDrawable) defaultMarker).getBitmap();
         Style mdefaultStyle = new Style(defaultBitmap, 0x901010AA, 5f, 0x20AA1010);
 
+        map.getOverlays().remove(1);
+
         // Styler do zmiany ikonek w zależności od kategorii
         MyKmlStyler styler = new MyKmlStyler(map, mdefaultStyle, kmlDocument);
         geoJsonOverlay = (FolderOverlay) kmlDocument.mKmlRoot.buildOverlay(map, null, styler, kmlDocument);
 
+
         map.getOverlays().add(1, geoJsonOverlay);
         map.invalidate();
     }
+
+
 
     // Dodawanie styli na podstawie pobranych wcześniej ikonek kategorii
     private void addCatsStyles(KmlDocument kmlDocument) {
@@ -297,8 +303,6 @@ public class map_screen extends AppCompatActivity
         public void onLocationResult(LocationResult locationResult) {
             for (Location location : locationResult.getLocations()) {
                 updateLocation(location);
-                Log.d("GEO", currentLocation.toString());
-                Log.d("GEO", "(" + Double.toString(currentLocation.getLatitude()));
                 displayMyCurrentLocationOverlay();
             }
         }
@@ -314,19 +318,8 @@ public class map_screen extends AppCompatActivity
 
 
     protected void updateLocation(Location location) {
-        // Logic to handle location object
-        String latVal = Double.toString(location.getLatitude());
-        String lonVal = Double.toString(location.getLongitude());
-
-        String timestamp = Double.toString(location.getTime());
-
-
-        Log.d("LOKACJA", "[" + timestamp + "] Location: " + latVal + ", " + lonVal);
-
         currentLocation = new JsonGeoPoint(location);
-        Log.d("GEO", Double.toString(currentLocation.getLatitude()));
         displayMyCurrentLocationOverlay();
-
     }
 
     @SuppressLint("MissingPermission")
@@ -370,8 +363,6 @@ public class map_screen extends AppCompatActivity
         View layout = inflater.inflate(R.layout.report_popup, null);
         window = new PopupWindow(layout, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT, true);
 
-        //final EditText editTypeNo = (EditText)layout.findViewById(R.id.repCatNrTxt);
-        final EditText editTypeNo = (EditText)layout.findViewById(R.id.repReportTxt);
         final EditText editDesc = (EditText)layout.findViewById(R.id.repReportTxt);
 
         Gson gson = new Gson();
@@ -386,13 +377,26 @@ public class map_screen extends AppCompatActivity
 
 
         // Spinner
-        ArrayAdapter typeAdapter = new ArrayAdapter(getApplicationContext(), R.layout.cat_spinner, typy);
+        final ArrayAdapter typeAdapter = new ArrayAdapter(getApplicationContext(), R.layout.cat_spinner, typy);
 
         final Spinner typeSpinner = (Spinner) layout.findViewById(R.id.repSpinner);
         typeSpinner.setAdapter(typeAdapter);
 
         Button btnReport = (Button)layout.findViewById(R.id.repReportBtn);
         Button btnCamera = (Button)layout.findViewById(R.id.repCameraBtn);
+
+        typeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                typeAdapter.notifyDataSetChanged();
+                Log.d("spinner", "Selected " + id);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
 
         btnReport.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -401,7 +405,7 @@ public class map_screen extends AppCompatActivity
                 int cat = typ.getId();
                 String desc = editDesc.getText().toString();
 
-                dodajZgloszenie(cat, desc, 1, "POINT");
+                dodajZgloszenie(cat, desc, SessionManager.getUserID(sp), "POINT");
             }
         });
 
@@ -486,7 +490,7 @@ public class map_screen extends AppCompatActivity
             }
         } else if (id == R.id.nav_myProfile) {
 
-           // finish();
+            finish();
             startActivity(new Intent(map_screen.this, ProfileScreen.class));
 
         } else if (id == R.id.nav_myReports) {
@@ -495,7 +499,11 @@ public class map_screen extends AppCompatActivity
 
         } else if (id == R.id.nav_logout) {
             SessionManager.removeToken(sp);
-            ApiUtils.onUnLoggedRedirect(sp, map_screen.this, UserLogin.class);
+            SessionManager.removeUserID(sp);
+            Toast.makeText(this, "Zostałeś poprawie wylogowany!", Toast.LENGTH_SHORT).show();
+            finish();
+            startActivity(new Intent(map_screen.this, UserLogin.class));
+            //ApiUtils.onUnLoggedRedirect(sp, map_screen.this, UserLogin.class);
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);

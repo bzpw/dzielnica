@@ -2,6 +2,7 @@ package pw.mpb.dzielnica.utils;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.util.Log;
 
 import org.json.JSONObject;
 
@@ -36,13 +37,31 @@ public class SessionManager {
         editor.apply();
     }
 
+    public static int getUserID(SharedPreferences sp) {
+        return sp.getInt("USERID", 0);
+    }
+
+    public static void saveUserID(SharedPreferences sp, int uid) {
+        SharedPreferences.Editor editor=sp.edit();
+        editor.putInt("USERID", uid);
+        editor.apply();
+        Log.d("UID", "Saved"+uid);
+    }
+
+    public static void removeUserID(SharedPreferences sp) {
+        SharedPreferences.Editor editor=sp.edit();
+        editor.remove("USERID");
+        editor.apply();
+    }
+
     /*
     * Testowe loginy
     * login:    hasło       grupa
-    * ============
+    * ===========================
     *
     * wezyr:    nicponim    (superuser)
     * szarak:   SzareHaslo  (-)
+    * ernshow:  Haslo12345  (-)
     *
      */
 

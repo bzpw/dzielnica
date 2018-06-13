@@ -6,15 +6,8 @@ android:layout_width="match_parent"
 android:layout_height="match_parent"
 tools:context="pw.mpb.dzielnica.NavDrawer">
 
-    <Button
-        android:id="@+id/btnMenu"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:background="@drawable/ic_menu_hamburger"
-        android:text="..." />
 
-
-<include
+    <include
     android:id="@+id/include"
     layout="@layout/content_nav_drawer"
     android:layout_width="match_parent"

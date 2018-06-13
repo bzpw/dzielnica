@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/warsawYellow"
     android:baselineAligned="false">
 
     <TextView
@@ -25,7 +26,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="4dp"
         android:layout_marginTop="28dp"
-        android:text="Kategoria zgłoszenia:"
+        android:text="Kategoria:"
         android:textAppearance="@style/TextAppearance.AppCompat.Medium"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/repGreetTxt" />
@@ -78,24 +79,27 @@
 
     <Spinner
         android:id="@+id/repSpinner"
-        android:layout_width="192dp"
-        android:layout_height="23dp"
+        android:layout_width="270dp"
+        android:layout_height="wrap_content"
+        android:minHeight="80dp"
         android:prompt="@string/selectCat"
         android:spinnerMode="dialog"
         app:layout_constraintBottom_toTopOf="@+id/repg2Txt"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.838"
+        app:layout_constraintHorizontal_bias="0.764"
         app:layout_constraintStart_toEndOf="@+id/repCategoryTxt"
         app:layout_constraintTop_toBottomOf="@+id/repGreetTxt"
-        app:layout_constraintVertical_bias="0.491" />
+        app:layout_constraintVertical_bias="0.482" />
 
     <Button
         android:id="@+id/repCameraBtn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:layout_marginEnd="8dp"
         android:text="KAMERA"
-        tools:layout_editor_absoluteX="16dp"
-        tools:layout_editor_absoluteY="487dp" />
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/repReportBtn" />
 
     <FrameLayout
         android:id="@+id/frameLayout"

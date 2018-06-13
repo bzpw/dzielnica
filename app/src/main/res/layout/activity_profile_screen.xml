@@ -6,87 +6,92 @@
     android:layout_height="match_parent"
     tools:context=".ProfileScreen">
 
+    <TextView
+        android:id="@+id/repGreetTxt2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="10dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="32dp"
+        android:text="PROFIL"
+        android:textAppearance="@style/TextAppearance.AppCompat.Display1"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <ImageView
         android:id="@+id/profileImgView"
         android:layout_width="128dp"
         android:layout_height="128dp"
-        android:layout_marginStart="32dp"
+        android:layout_marginStart="16dp"
         android:layout_marginTop="32dp"
         android:contentDescription="profileImg"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/repGreetTxt2"
         app:srcCompat="@android:drawable/screen_background_dark_transparent" />
 
     <TextView
         android:id="@+id/usernameTxt"
-        android:layout_width="wrap_content"
+        android:layout_width="128dp"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="32dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="32dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
         android:contentDescription="user_name"
+        android:gravity="center"
         android:text="UserName"
         android:textAppearance="@style/TextAppearance.AppCompat.Large"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.75"
-        app:layout_constraintStart_toEndOf="@+id/profileImgView"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/profileImgView" />
 
     <EditText
         android:id="@+id/nameTxt"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="32dp"
-        android:layout_marginStart="32dp"
-        android:layout_marginTop="20dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginTop="32dp"
+        android:gravity="right"
         android:hint="Imię bohatera"
         android:inputType="textCapWords"
+        android:maxWidth="190dp"
         android:singleLine="true"
         android:textAppearance="@style/TextAppearance.AppCompat.Medium"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.923"
-        app:layout_constraintStart_toEndOf="@+id/profileImgView"
-        app:layout_constraintTop_toBottomOf="@+id/usernameTxt" />
+        app:layout_constraintTop_toBottomOf="@+id/repGreetTxt2" />
 
     <EditText
         android:id="@+id/surnameTxt"
-        android:layout_width="wrap_content"
+        android:layout_width="162dp"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="32dp"
-        android:layout_marginStart="32dp"
-        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginTop="36dp"
+        android:gravity="right"
         android:hint="Nazwisko bohatera"
         android:inputType="textCapWords"
+        android:maxWidth="180dp"
         android:singleLine="true"
         android:textAppearance="@style/TextAppearance.AppCompat.Medium"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.9"
-        app:layout_constraintStart_toEndOf="@+id/profileImgView"
         app:layout_constraintTop_toBottomOf="@+id/nameTxt" />
 
     <TextView
         android:id="@+id/numOfCoinsTxt"
-        android:layout_width="wrap_content"
+        android:layout_width="65dp"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="120dp"
-        android:layout_marginStart="8dp"
+        android:layout_marginStart="12dp"
         android:layout_marginTop="16dp"
+        android:gravity="start"
         android:text="TextView"
-        android:textAppearance="@style/TextAppearance.AppCompat.Display1"
-        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/coinImg"
-        app:layout_constraintTop_toBottomOf="@+id/yourCoinsTxt" />
+        app:layout_constraintTop_toBottomOf="@+id/usernameTxt" />
 
     <ImageView
         android:id="@+id/coinImg"
-        android:layout_width="63dp"
-        android:layout_height="69dp"
-        android:layout_marginStart="32dp"
-        android:layout_marginTop="8dp"
-        app:layout_constraintEnd_toStartOf="@+id/numOfCoinsTxt"
-        app:layout_constraintHorizontal_bias="0.0"
+        android:layout_width="25dp"
+        android:layout_height="26dp"
+        android:layout_marginStart="28dp"
+        android:layout_marginTop="12dp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/yourCoinsTxt"
+        app:layout_constraintTop_toBottomOf="@+id/usernameTxt"
         app:srcCompat="@drawable/syrenka2" />
 
     <EditText
@@ -94,15 +99,13 @@
         style="@style/Base.TextAppearance.AppCompat.Medium"
         android:layout_width="97dp"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="32dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginTop="36dp"
         android:ems="10"
+        android:gravity="right"
         android:hint="Podaj wiek"
         android:inputType="numberDecimal"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.978"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/surnameTxt" />
 
     <TextView
@@ -112,18 +115,15 @@
         tools:layout_editor_absoluteX="36dp"
         tools:layout_editor_absoluteY="205dp" />
 
-    <TextView
-        android:id="@+id/yourCoinsTxt"
+    <Button
+        android:id="@+id/button4"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="8dp"
-        android:layout_marginStart="32dp"
-        android:layout_marginTop="84dp"
-        android:text="Twoje monety:"
-        android:textAppearance="@style/TextAppearance.AppCompat.Large"
+        android:layout_marginEnd="16dp"
+        android:layout_marginTop="36dp"
+        android:enabled="false"
+        android:text="Zaktualizuj"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/profileImgView" />
+        app:layout_constraintTop_toBottomOf="@+id/ageTxtBox" />
 
 </android.support.constraint.ConstraintLayout>

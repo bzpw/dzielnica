@@ -5,4 +5,7 @@
     <color name="colorAccent">#FF4081</color>
 
     <color name="black_overlay">#66000000</color>
+    <color name="spinnerGrey">#f3f3f3</color>
+    <color name="warsawYellow">#e19a00</color>
+    <color name="warsawRed">#da291c</color>
 </resources>

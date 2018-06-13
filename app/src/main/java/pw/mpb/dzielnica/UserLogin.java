@@ -83,8 +83,10 @@ public class UserLogin extends AppCompatActivity implements View.OnClickListener
                             if(response.isSuccessful()) {
                                 if(response.body() != null) {
                                     String token = response.body().getToken();
+                                    int uid = response.body().getUserID();
                                     ApiUtils.logResponse(token);
                                     SessionManager.saveToken(sp, token); // Zapisanie tokena do SharedPref
+                                    SessionManager.saveUserID(sp, uid); // Zapisanie tokena do SharedPref
                                     ApiUtils.showMainActivity(UserLogin.this); // Przeniesienie do MainActivity
                                 }
                             } else{

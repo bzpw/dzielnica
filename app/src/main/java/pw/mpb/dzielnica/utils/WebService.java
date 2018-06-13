@@ -22,6 +22,7 @@ import retrofit2.http.Header;
 import retrofit2.http.Multipart;
 import retrofit2.http.POST;
 import retrofit2.http.Part;
+import retrofit2.http.Path;
 import retrofit2.http.Url;
 
 /**
@@ -43,6 +44,9 @@ public interface WebService {
     @FormUrlEncoded
     Call<Token> loginUser(@Field("username") String username,
                           @Field("password") String password);
+
+    @GET("/api/user/detail/{uid}")
+    Call<User> detailUser(@Path("uid") int uid, @Header("Authorization") String authHeader);
 
     @POST("api/user/verify/")
     @FormUrlEncoded

@@ -9,6 +9,7 @@ public class Token {
     @SerializedName("token")
     @Expose
     private String token;
+    private int user;
 
     public String getToken() {
         return token;
@@ -18,4 +19,11 @@ public class Token {
         this.token = token;
     }
 
+    public int getUserID() {
+        return user;
+    }
+
+    public void setUserID(int userID) {
+        this.user = userID;
+    }
 }
