@@ -95,7 +95,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 finish();
-                startActivity(new Intent(MainActivity.this, map_screen.class));
+                startActivity(new Intent(MainActivity.this, MapScreen.class));
             }
         });
 

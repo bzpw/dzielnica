@@ -25,6 +25,7 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.support.annotation.NonNull;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -39,6 +40,8 @@ import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+
+import pw.mpb.dzielnica.utils.ApiUtils;
 import pw.mpb.dzielnica.utils.MyLocationProvider;
 import pw.mpb.dzielnica.utils.Utils;
 
@@ -59,7 +62,7 @@ public class AndroidCameraApi extends AppCompatActivity {
     MyLocationProvider mLocProvider;
 
     private static final String TAG = "AndroidCameraApi";
-    private Button takePictureButton;
+    private FloatingActionButton takePictureButton;
     private EditText editDesc;
     private TextureView textureView;
     private static final SparseIntArray ORIENTATIONS = new SparseIntArray();
@@ -95,7 +98,7 @@ public class AndroidCameraApi extends AppCompatActivity {
 
         editDesc = (EditText) findViewById(R.id.edit_desc);
 
-        takePictureButton = (Button) findViewById(R.id.btn_takepicture);
+        takePictureButton = (FloatingActionButton) findViewById(R.id.btn_takepicture);
         assert takePictureButton != null;
         takePictureButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -231,22 +234,10 @@ public class AndroidCameraApi extends AppCompatActivity {
                     try {
                         output = new FileOutputStream(file);
                         output.write(bytes);
-
-//                        String uuid = UUID.randomUUID().toString();
-//
-//                        String desc = editDesc.getText().toString();
-//
-//                        Double lat,lon;
-//
-//                        if (mLocProvider.getLastLocation() != null) {
-//                            lat = mLocProvider.getLastLocation().getLatitude();
-//                            lon = mLocProvider.getLastLocation().getLongitude();
-//                        } else {
-//                            lat = 0.0;
-//                            lon = 0.0;
-//
-//                        }
-
+                        ApiUtils.saveFileToApi(file);
+                        Toast.makeText(AndroidCameraApi.this, "Zdjęcie zostało zapisane, możesz teraz wysłać zgłoszenie", Toast.LENGTH_SHORT).show();
+                        finish();
+                        //startActivity(new Intent(AndroidCameraApi.this, ));
                     } finally {
                         if (null != output) {
                             output.close();
@@ -318,6 +309,7 @@ public class AndroidCameraApi extends AppCompatActivity {
             StreamConfigurationMap map = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
             assert map != null;
             imageDimension = map.getOutputSizes(SurfaceTexture.class)[0];
+
             // Add permission for camera and let user grant the permission
             if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED &&
                     ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {

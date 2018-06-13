@@ -30,6 +30,7 @@ public class ApiUtils {
     public static final String TAG = "API";
     //private static final String BASE_URL = "http://192.168.1.104:8000/"; //LOKALNY ADRES - testy
     public static final String BASE_URL = "http://dzielnica.sytes.net:8000"; //ADRES SERWERA
+    private static File lastImage;
 
     private ApiUtils() {}
 
@@ -167,4 +168,11 @@ public class ApiUtils {
         from.startActivity(new Intent(from, MainActivity.class));
     }
 
+    public static void saveFileToApi(File f) {
+        lastImage = f;
+    }
+
+    public static File getLastImage() {
+        return lastImage;
+    }
 }

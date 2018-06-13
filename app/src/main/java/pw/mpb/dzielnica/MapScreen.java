@@ -62,6 +62,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
+import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
 import pw.mpb.dzielnica.pojo.Category;
 import pw.mpb.dzielnica.pojo.Type;
@@ -81,19 +84,20 @@ import retrofit2.Retrofit;
 
 
 
-public class map_screen extends AppCompatActivity
+public class MapScreen extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, RotationGestureDetector.RotationListener, MapEventsReceiver {
 
 
     JsonGeoPoint currentLocation;
     private static final int REQ_CODE_PERMISSION = 1;
+    private static final int REQUEST_CAMERA_PERMISSION = 200;
 
     private FusedLocationProviderClient mFusedLocationClient;
     private MyLocationNewOverlay currentLocationOverlay;
     private FolderOverlay geoJsonOverlay;
 
     MapView map = null;
-    public FloatingActionButton cameraBtn;
+    public Button cameraBtn;
     private PopupWindow window;
 
 
@@ -159,6 +163,15 @@ public class map_screen extends AppCompatActivity
             return;
         }
 
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED &&
+                ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                requestPermissions(new String[]{Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_CAMERA_PERMISSION);
+            }
+
+            return;
+        }
+
         // Token, REST API
         sp = getSharedPreferences("authentication", MODE_PRIVATE);
         sp_typy = getSharedPreferences("TYPY", MODE_PRIVATE);
@@ -166,7 +179,7 @@ public class map_screen extends AppCompatActivity
 
         mWebService = ApiUtils.getAPIService();
 
-        //cameraBtn = (FloatingActionButton) findViewById(R.id.cameraBtn);
+        cameraBtn = (Button) findViewById(R.id.repCameraBtn);
 
 
         GeoPoint center = new GeoPoint(52.220428, 21.010725);
@@ -193,7 +206,7 @@ public class map_screen extends AppCompatActivity
                     GeoPoint myPosition = new GeoPoint(currentLocation.getLatitude(), currentLocation.getLongitude());
                     map.getController().animateTo(myPosition);
                 } else {
-                    Toast.makeText(map_screen.this, "Nie wykryto pozycji użytkownika... Upewnij się, że lokalizacja działa poprawnie.", Toast.LENGTH_LONG).show();
+                    Toast.makeText(MapScreen.this, "Nie wykryto pozycji użytkownika... Upewnij się, że lokalizacja działa poprawnie.", Toast.LENGTH_LONG).show();
 
                 }
             }
@@ -205,7 +218,7 @@ public class map_screen extends AppCompatActivity
     public void onResume() {
         super.onResume();
         map.onResume();
-        ApiUtils.onUnLoggedRedirect(sp, map_screen.this, UserLogin.class);
+        ApiUtils.onUnLoggedRedirect(sp, MapScreen.this, UserLogin.class);
         createLocationRequest();
         handler.removeCallbacks(runnable);
         handler.postDelayed(runnable, delay);
@@ -359,7 +372,7 @@ public class map_screen extends AppCompatActivity
 
     // Okienko dodawania zgłoszeń
     private void ShowPopupWindow() throws IOException {
-        LayoutInflater inflater = (LayoutInflater) map_screen.this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        LayoutInflater inflater = (LayoutInflater) MapScreen.this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View layout = inflater.inflate(R.layout.report_popup, null);
         window = new PopupWindow(layout, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT, true);
 
@@ -409,18 +422,13 @@ public class map_screen extends AppCompatActivity
             }
         });
 
-//        btnCamera.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//
-//                FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-//                transaction.replace(R.id.mapContent, new AndroidCameraFragment());
-//                transaction.commit();
-//
-//                //finish();
-//                //startActivity(new Intent(map_screen.this, AndroidCameraApi.class));
-//            }
-//        });
+        btnCamera.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
+                startActivity(new Intent(MapScreen.this, AndroidCameraApi.class));
+            }
+        });
 
         window.setBackgroundDrawable(new ColorDrawable(Color.WHITE));
         window.setOutsideTouchable(false);
@@ -437,12 +445,26 @@ public class map_screen extends AppCompatActivity
         else if (JSONmethod.equals("GEOJSON"))
             geometry = currentLocation.getJSON();
 
-        mWebService.addZgloszenie("JWT "+SessionManager.getToken(sp), cat, desc, geometry, user).enqueue(new Callback<Zgloszenie>() {
-            @Override
-            public void onResponse(Call<Zgloszenie> call, Response<Zgloszenie> response) {
 
-                if (response.isSuccessful()) {
-                    Toast.makeText(map_screen.this, "Dodano zgłoszenie!", Toast.LENGTH_SHORT).show();
+        File file = ApiUtils.getLastImage();
+        //File file = new File("/storage/emulated/0/Android/data/pw.mpb.dzielnica/files/1.png");
+
+        RequestBody reqFile = RequestBody.create(MediaType.parse("image/*"), file);
+        MultipartBody.Part body = MultipartBody.Part.createFormData("img", file.getName(), reqFile);
+       // RequestBody name = RequestBody.create(MediaType.parse("text/plain"), "upload_test");
+
+        RequestBody catR = RequestBody.create(MediaType.parse("text/plain"), Integer.toString(cat));
+        RequestBody descR = RequestBody.create(MediaType.parse("text/plain"), desc);
+        RequestBody geometryR = RequestBody.create(MediaType.parse("text/plain"), geometry);
+        RequestBody userR = RequestBody.create(MediaType.parse("text/plain"), Integer.toString(user));
+
+
+        mWebService.addZgloszenie("JWT "+SessionManager.getToken(sp), catR, descR, geometryR, userR, body)
+                .enqueue(new Callback<ResponseBody>() {
+             @Override
+             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                 if (response.isSuccessful()) {
+                        Toast.makeText(MapScreen.this, "Dodano zgłoszenie!", Toast.LENGTH_SHORT).show();
                 } else {
                     try {
                         int code = response.code();
@@ -454,15 +476,41 @@ public class map_screen extends AppCompatActivity
                     }
                     ApiUtils.logResponse(response.errorBody().toString());
                 }
+                 window.dismiss();
+             }
 
-                window.dismiss();
-            }
+             @Override
+             public void onFailure(Call<ResponseBody> call, Throwable t) {
+                 ApiUtils.logFailure(t);
+             }
+       });
 
-            @Override
-            public void onFailure(Call<Zgloszenie> call, Throwable t) {
-                ApiUtils.logFailure(t);
-            }
-        });
+//        mWebService.addZgloszenie("JWT "+SessionManager.getToken(sp), cat, desc, geometry, user).enqueue(new Callback<Zgloszenie>() {
+//            @Override
+//            public void onResponse(Call<Zgloszenie> call, Response<Zgloszenie> response) {
+//
+//                if (response.isSuccessful()) {
+//                    Toast.makeText(MapScreen.this, "Dodano zgłoszenie!", Toast.LENGTH_SHORT).show();
+//                } else {
+//                    try {
+//                        int code = response.code();
+//                        String err = response.errorBody().string();
+//                        ApiUtils.logResponse(err);
+//                        ApiUtils.showErrToast(getApplicationContext(), code, err);
+//                    } catch (IOException e) {
+//                        e.printStackTrace();
+//                    }
+//                    ApiUtils.logResponse(response.errorBody().toString());
+//                }
+//
+//                window.dismiss();
+//            }
+//
+//            @Override
+//            public void onFailure(Call<Zgloszenie> call, Throwable t) {
+//                ApiUtils.logFailure(t);
+//            }
+//        });
     }
 
     // Obsługa menu
@@ -491,7 +539,7 @@ public class map_screen extends AppCompatActivity
         } else if (id == R.id.nav_myProfile) {
 
             finish();
-            startActivity(new Intent(map_screen.this, ProfileScreen.class));
+            startActivity(new Intent(MapScreen.this, ProfileScreen.class));
 
         } else if (id == R.id.nav_myReports) {
 
@@ -502,8 +550,8 @@ public class map_screen extends AppCompatActivity
             SessionManager.removeUserID(sp);
             Toast.makeText(this, "Zostałeś poprawie wylogowany!", Toast.LENGTH_SHORT).show();
             finish();
-            startActivity(new Intent(map_screen.this, UserLogin.class));
-            //ApiUtils.onUnLoggedRedirect(sp, map_screen.this, UserLogin.class);
+            startActivity(new Intent(MapScreen.this, UserLogin.class));
+            //ApiUtils.onUnLoggedRedirect(sp, MapScreencreen.this, UserLogin.class);
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);

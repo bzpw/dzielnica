@@ -7,6 +7,7 @@ import org.json.JSONObject;
 import java.util.List;
 
 import okhttp3.MultipartBody;
+import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
 import pw.mpb.dzielnica.pojo.Category;
 import pw.mpb.dzielnica.pojo.Dzielnica;
@@ -52,13 +53,22 @@ public interface WebService {
     @FormUrlEncoded
     Call<JSONObject> checkIsLogged(@Field("token") String token);
 
+//    @POST("api/zgloszenia/add/")
+//    @FormUrlEncoded
+//    Call<Zgloszenie> addZgloszenie(@Header("Authorization") String authHeader,
+//                                   @Field("type") int field,
+//                                   @Field("desc") String desc,
+//                                   @Field("geometry") String geometry,
+//                                   @Field("user") int user);
+
     @POST("api/zgloszenia/add/")
-    @FormUrlEncoded
-    Call<Zgloszenie> addZgloszenie(@Header("Authorization") String authHeader,
-                                   @Field("type") int field,
-                                   @Field("desc") String desc,
-                                   @Field("geometry") String geometry,
-                                   @Field("user") int user);
+    @Multipart
+    Call<ResponseBody> addZgloszenie(@Header("Authorization") String authHeader,
+                                     @Part("type") RequestBody type,
+                                   @Part("desc") RequestBody desc,
+                                   @Part("geometry") RequestBody geometry,
+                                   @Part("user") RequestBody user,
+                                   @Part MultipartBody.Part image);
 
     @GET("api/zgloszenia/list/")
     Call<ResponseBody> listZgloszenia(@Header("Authorization") String authHeader);
