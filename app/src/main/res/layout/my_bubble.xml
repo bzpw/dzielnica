@@ -3,43 +3,45 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="wrap_content"
     android:background="@drawable/bonuspack_bubble"
     android:orientation="vertical">
 
     <ImageView
         android:id="@+id/bubble_image"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="150dp"
         android:layout_weight="0"
-        android:maxHeight="300dp"
+        android:maxHeight="200dp"
         android:visibility="visible" />
 
     <TextView
-        android:id="@+id/bubble_title"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="left"
-        android:layout_weight="0"
-        android:maxEms="17"
-        android:text="Title"
-        android:textColor="#ff0000" />
-
-    <TextView
         android:id="@+id/bubble_description"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:gravity="center"
         android:maxEms="17"
         android:text="Description"
         android:textColor="#ff0000"
-        android:textSize="12dp" />
+        android:textSize="14sp" />
 
     <TextView
         android:id="@+id/bubble_subdescription"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:gravity="center"
         android:maxEms="17"
         android:text="Address"
         android:textColor="#ff0000"
-        android:textSize="10dp" />
+        android:textSize="13dp" />
+
+    <TextView
+        android:id="@+id/bubble_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="0"
+        android:gravity="left|start"
+        android:maxEms="17"
+        android:text="Title"
+        android:textColor="#ff0000" />
 </LinearLayout>

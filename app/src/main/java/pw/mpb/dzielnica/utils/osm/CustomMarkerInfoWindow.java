@@ -58,7 +58,7 @@ public class CustomMarkerInfoWindow extends MarkerInfoWindow {
         if (!this.img.equals("null")) {
             Uri uri = Uri.parse(ApiUtils.BASE_URL+this.img);
             Log.d("IMG", "Uri: "+ApiUtils.BASE_URL+this.img);
-            Picasso.with(mView.getContext()).load(uri).noFade().placeholder(R.drawable.placeholder)
+            Picasso.with(mView.getContext()).load(uri).noFade().placeholder(R.drawable.placeholder).fit().centerInside()
                     .into(iv, new MarkerCallback(m));
         }
     }

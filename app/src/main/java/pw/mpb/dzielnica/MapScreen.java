@@ -70,6 +70,7 @@ import pw.mpb.dzielnica.pojo.Category;
 import pw.mpb.dzielnica.pojo.Type;
 import pw.mpb.dzielnica.pojo.Zgloszenie;
 import pw.mpb.dzielnica.utils.ApiUtils;
+import pw.mpb.dzielnica.utils.MyLocationProvider;
 import pw.mpb.dzielnica.utils.SessionManager;
 import pw.mpb.dzielnica.utils.Utils;
 import pw.mpb.dzielnica.utils.WebService;
@@ -95,6 +96,7 @@ public class MapScreen extends AppCompatActivity
     private FusedLocationProviderClient mFusedLocationClient;
     private MyLocationNewOverlay currentLocationOverlay;
     private FolderOverlay geoJsonOverlay;
+    private MyLocationProvider myLocProv;
 
     MapView map = null;
     public Button cameraBtn;
@@ -136,7 +138,7 @@ public class MapScreen extends AppCompatActivity
 //                        .setAction("Action", null).show();
 //            }
 //        });
-
+        myLocProv = MyLocationProvider.getInstance(this);
 
         final DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
 
@@ -182,9 +184,12 @@ public class MapScreen extends AppCompatActivity
         //cameraBtn = (Button) findViewById(R.id.repCameraBtn);
 
 
-        GeoPoint center = new GeoPoint(52.220428, 21.010725);
+        GeoPoint center;
 
-
+        if (null != myLocProv.getLastLocation())
+            center = new GeoPoint(myLocProv.getLastLocation().getLatitude(), myLocProv.getLastLocation().getLongitude());
+        else
+            center = new GeoPoint(52.220428, 21.010725);
 
         map = (MapView) findViewById(R.id.map);
         map.setTileSource(TileSourceFactory.MAPNIK);
@@ -271,7 +276,7 @@ public class MapScreen extends AppCompatActivity
         Bitmap defaultBitmap = ((BitmapDrawable) defaultMarker).getBitmap();
         Style mdefaultStyle = new Style(defaultBitmap, 0x901010AA, 5f, 0x20AA1010);
 
-        map.getOverlays().remove(1);
+
 
         // Styler do zmiany ikonek w zależności od kategorii
         MyKmlStyler styler = new MyKmlStyler(map, mdefaultStyle, kmlDocument);
