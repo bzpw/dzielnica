@@ -4,11 +4,14 @@ import android.Manifest;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.graphics.ImageFormat;
 import android.graphics.Matrix;
 import android.graphics.RectF;
 import android.graphics.SurfaceTexture;
+import android.graphics.drawable.ColorDrawable;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCaptureSession;
 import android.hardware.camera2.CameraCharacteristics;
@@ -31,19 +34,40 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.util.Size;
 import android.util.SparseIntArray;
+import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.PopupWindow;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
+import okhttp3.RequestBody;
+import okhttp3.ResponseBody;
+import pw.mpb.dzielnica.pojo.Type;
 import pw.mpb.dzielnica.utils.ApiUtils;
 import pw.mpb.dzielnica.utils.MyLocationProvider;
+import pw.mpb.dzielnica.utils.SessionManager;
 import pw.mpb.dzielnica.utils.Utils;
+import pw.mpb.dzielnica.utils.WebService;
+import pw.mpb.dzielnica.utils.osm.JsonGeoPoint;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -62,7 +86,7 @@ public class AndroidCameraApi extends AppCompatActivity {
     MyLocationProvider mLocProvider;
 
     private static final String TAG = "AndroidCameraApi";
-    private FloatingActionButton takePictureButton;
+    private ImageButton takePictureButton;
     private EditText editDesc;
     private TextureView textureView;
     private static final SparseIntArray ORIENTATIONS = new SparseIntArray();
@@ -85,6 +109,15 @@ public class AndroidCameraApi extends AppCompatActivity {
     private Handler mBackgroundHandler;
     private HandlerThread mBackgroundThread;
 
+    // Popup
+    private PopupWindow window;
+    SharedPreferences sp;
+    SharedPreferences sp_typy;
+    SharedPreferences sp_kategorie;
+    JsonGeoPoint currentLocation;
+    MyLocationProvider mLocProv;
+    private WebService mWebService;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -96,9 +129,7 @@ public class AndroidCameraApi extends AppCompatActivity {
         assert textureView != null;
         textureView.setSurfaceTextureListener(textureListener);
 
-        editDesc = (EditText) findViewById(R.id.edit_desc);
-
-        takePictureButton = (FloatingActionButton) findViewById(R.id.btn_takepicture);
+        takePictureButton = (ImageButton) findViewById(R.id.btn_takepicture);
         assert takePictureButton != null;
         takePictureButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -106,6 +137,13 @@ public class AndroidCameraApi extends AppCompatActivity {
                 takePicture();
             }
         });
+
+        sp = getSharedPreferences("authentication", MODE_PRIVATE);
+        sp_typy = getSharedPreferences("TYPY", MODE_PRIVATE);
+        sp_kategorie = getSharedPreferences("KATEGORIE", MODE_PRIVATE);
+
+        mLocProv = MyLocationProvider.getInstance(this);
+        mWebService = ApiUtils.getAPIService();
     }
 
     TextureView.SurfaceTextureListener textureListener = new TextureView.SurfaceTextureListener() {
@@ -236,8 +274,8 @@ public class AndroidCameraApi extends AppCompatActivity {
                         output.write(bytes);
                         ApiUtils.saveFileToApi(file);
                         Toast.makeText(AndroidCameraApi.this, "Zdjęcie zostało zapisane, możesz teraz wysłać zgłoszenie", Toast.LENGTH_SHORT).show();
-                        finish();
                         //startActivity(new Intent(AndroidCameraApi.this, ));
+                        ShowPopupWindow();
                     } finally {
                         if (null != output) {
                             output.close();
@@ -399,4 +437,123 @@ public class AndroidCameraApi extends AppCompatActivity {
         }
         textureView.setTransform(matrix);
     }
+
+    // Okienko dodawania zgłoszeń
+    private void ShowPopupWindow() throws IOException {
+        LayoutInflater inflater = (LayoutInflater) AndroidCameraApi.this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        View layout = inflater.inflate(R.layout.report_popup, null);
+        window = new PopupWindow(layout, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT, true);
+
+        final EditText editDesc = (EditText)layout.findViewById(R.id.repReportTxt);
+
+        Gson gson = new Gson();
+        String json = sp_typy.getString("Typy", "");
+        Log.d("API", json);
+
+        String json_cats = sp_kategorie.getString("Kategorie", null);
+        Log.d("API-kategorie", json_cats);
+
+        java.lang.reflect.Type type = new TypeToken<List<Type>>(){}.getType();
+        List<Type> typy = gson.fromJson(json, type);
+
+
+        // Spinner
+        final ArrayAdapter typeAdapter = new ArrayAdapter(getApplicationContext(), R.layout.cat_spinner, typy);
+
+        final Spinner typeSpinner = (Spinner) layout.findViewById(R.id.repSpinner);
+        typeSpinner.setAdapter(typeAdapter);
+
+        Button btnReport = (Button)layout.findViewById(R.id.repReportBtn);
+
+        typeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                typeAdapter.notifyDataSetChanged();
+                Log.d("spinner", "Selected " + id);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+
+        btnReport.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Type typ = (Type) typeSpinner.getSelectedItem();
+                int cat = typ.getId();
+                String desc = editDesc.getText().toString();
+
+                dodajZgloszenie(cat, desc, SessionManager.getUserID(sp), "POINT");
+            }
+        });
+
+//        btnCamera.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                finish();
+//                startActivity(new Intent(AndroidCameraApi.this, AndroidCameraApi.class));
+//            }
+//        });
+
+        window.setBackgroundDrawable(new ColorDrawable(Color.WHITE));
+        window.setOutsideTouchable(false);
+        window.showAtLocation(layout, Gravity.CENTER, 40, 60);
+
+
+    }
+
+    private void dodajZgloszenie(int cat, String desc, int user, String JSONmethod) {
+        currentLocation = new JsonGeoPoint(mLocProv.getLastLocation().getLatitude(), mLocProv.getLastLocation().getLongitude());
+        String geometry = "";
+        if (JSONmethod.equals("POINT"))
+            geometry = currentLocation.getPOINT();
+        else if (JSONmethod.equals("GEOJSON"))
+            geometry = currentLocation.getJSON();
+
+
+        File file = ApiUtils.getLastImage();
+        //File file = new File("/storage/emulated/0/Android/data/pw.mpb.dzielnica/files/1.png");
+
+        RequestBody reqFile = RequestBody.create(MediaType.parse("image/*"), file);
+        MultipartBody.Part body = MultipartBody.Part.createFormData("img", file.getName(), reqFile);
+        // RequestBody name = RequestBody.create(MediaType.parse("text/plain"), "upload_test");
+
+        RequestBody catR = RequestBody.create(MediaType.parse("text/plain"), Integer.toString(cat));
+        RequestBody descR = RequestBody.create(MediaType.parse("text/plain"), desc);
+        RequestBody geometryR = RequestBody.create(MediaType.parse("text/plain"), geometry);
+        RequestBody userR = RequestBody.create(MediaType.parse("text/plain"), Integer.toString(user));
+
+
+        mWebService.addZgloszenie("JWT "+SessionManager.getToken(sp), catR, descR, geometryR, userR, body)
+                .enqueue(new Callback<ResponseBody>() {
+                    @Override
+                    public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                        if (response.isSuccessful()) {
+                            Toast.makeText(AndroidCameraApi.this, "Dodano zgłoszenie!", Toast.LENGTH_SHORT).show();
+                        } else {
+                            try {
+                                int code = response.code();
+                                String err = response.errorBody().string();
+                                ApiUtils.logResponse(err);
+                                ApiUtils.showErrToast(getApplicationContext(), code, err);
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                            ApiUtils.logResponse(response.errorBody().toString());
+                        }
+
+                        finish();
+                        startActivity(new Intent(AndroidCameraApi.this, MapScreen.class));
+                    }
+
+                    @Override
+                    public void onFailure(Call<ResponseBody> call, Throwable t) {
+                        ApiUtils.logFailure(t);
+                    }
+                });
+
+    }
+
 }

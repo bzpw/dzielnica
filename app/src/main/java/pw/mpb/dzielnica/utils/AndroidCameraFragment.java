@@ -96,8 +96,6 @@ public class AndroidCameraFragment extends Fragment{
         assert textureView != null;
         textureView.setSurfaceTextureListener(textureListener);
 
-        editDesc = (EditText) v.findViewById(R.id.edit_desc);
-
         takePictureButton = (Button) v.findViewById(R.id.btn_takepicture);
         assert takePictureButton != null;
         takePictureButton.setOnClickListener(new View.OnClickListener() {

@@ -179,7 +179,7 @@ public class MapScreen extends AppCompatActivity
 
         mWebService = ApiUtils.getAPIService();
 
-        cameraBtn = (Button) findViewById(R.id.repCameraBtn);
+        //cameraBtn = (Button) findViewById(R.id.repCameraBtn);
 
 
         GeoPoint center = new GeoPoint(52.220428, 21.010725);
@@ -396,7 +396,7 @@ public class MapScreen extends AppCompatActivity
         typeSpinner.setAdapter(typeAdapter);
 
         Button btnReport = (Button)layout.findViewById(R.id.repReportBtn);
-        Button btnCamera = (Button)layout.findViewById(R.id.repCameraBtn);
+        //Button btnCamera = (Button)layout.findViewById(R.id.repCameraBtn);
 
         typeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
@@ -422,13 +422,13 @@ public class MapScreen extends AppCompatActivity
             }
         });
 
-        btnCamera.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                finish();
-                startActivity(new Intent(MapScreen.this, AndroidCameraApi.class));
-            }
-        });
+//        btnCamera.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                finish();
+//                startActivity(new Intent(MapScreen.this, AndroidCameraApi.class));
+//            }
+//        });
 
         window.setBackgroundDrawable(new ColorDrawable(Color.WHITE));
         window.setOutsideTouchable(false);
@@ -531,11 +531,8 @@ public class MapScreen extends AppCompatActivity
         int id = item.getItemId();
 
         if (id == R.id.nav_addReport) {
-            try {
-                ShowPopupWindow();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            finish();
+            startActivity(new Intent(MapScreen.this, AndroidCameraApi.class));
         } else if (id == R.id.nav_myProfile) {
 
             finish();
