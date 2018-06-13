@@ -17,6 +17,7 @@ import java.io.OutputStream;
 
 import okhttp3.ResponseBody;
 import pw.mpb.dzielnica.MainActivity;
+import pw.mpb.dzielnica.MapScreen;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -163,9 +164,9 @@ public class ApiUtils {
         from.startActivity(new Intent(from, to));
     }
 
-    public static void showMainActivity(final Context from) {
+    public static void showMapActivity(final Context from) {
         ((Activity)from).finish();
-        from.startActivity(new Intent(from, MainActivity.class));
+        from.startActivity(new Intent(from, MapScreen.class));
     }
 
     public static void saveFileToApi(File f) {

@@ -550,7 +550,7 @@ public class MapScreen extends AppCompatActivity
         } else if (id == R.id.nav_logout) {
             SessionManager.removeToken(sp);
             SessionManager.removeUserID(sp);
-            Toast.makeText(this, "Zostałeś poprawie wylogowany!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Zostałeś poprawnie wylogowany!", Toast.LENGTH_SHORT).show();
             finish();
             startActivity(new Intent(MapScreen.this, UserLogin.class));
             //ApiUtils.onUnLoggedRedirect(sp, MapScreencreen.this, UserLogin.class);

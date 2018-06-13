@@ -1,9 +1,12 @@
 package pw.mpb.dzielnica;
 
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -23,6 +26,8 @@ public class ProfileScreen extends AppCompatActivity {
     private WebService mWebService;
     SharedPreferences sp;
 
+    ImageButton btnBack;
+
     TextView coinsTxtView;
     TextView usernameTxtView;
 
@@ -34,6 +39,8 @@ public class ProfileScreen extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile_screen);
 
+        btnBack = (ImageButton) findViewById(R.id.btnProfileBack);
+
         coinsTxtView = (TextView) findViewById(R.id.numOfCoinsTxt);
         usernameTxtView = (TextView) findViewById(R.id.usernameTxt);
 
@@ -42,6 +49,14 @@ public class ProfileScreen extends AppCompatActivity {
 
         sp = getSharedPreferences("authentication", MODE_PRIVATE);
         mWebService = ApiUtils.getAPIService();
+
+        btnBack.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
+                startActivity(new Intent(ProfileScreen.this, MapScreen.class));
+            }
+        });
 
        loadUserInfo();
     }
